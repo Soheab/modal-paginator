@@ -1,0 +1,131 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "discord-ext-modal_paginator"
+description = "An extension for discord.py that allows you to paginate a Modal using buttons."
+authors = [{ name = "Soheab_" }]
+requires-python = ">=3.8"
+keywords = [
+    "discord.py",
+    "dpy",
+    "discord",
+    "extension",
+    "discord.ext",
+    "modal",
+    "form",
+]
+license = { file = "LICENSE" }
+dependencies = ["discord.py>=2.0.0, <3.0.0"]
+dynamic = ["version", "readme"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Natural Language :: English",
+    "Typing :: Typed",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.optional-dependencies]
+dev = ["black", "ruff", "typing_extensions"]
+
+[tool.setuptools]
+packages = ["discord", "discord.ext", "discord.ext.modal_paginator"]
+
+[project.urls]
+homepage = "https://github.com/Soheab/modal-paginator"
+# documentation = "...""
+repository = "https://github.com/Soheab/modal-paginator"
+
+
+[tool.setuptools.dynamic]
+version = { attr = "discord.ext.modal_paginator.__version__" }
+readme = { file = ["README.md"], content-type = "text/markdown" }
+
+[tool.pyright]
+include = ["discord", "discord.ext", "discord.ext.modal_paginator"]
+exclude = ["**/__pycache__", "_build", "build", "dist", "docs"]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+pythonVersion = "3.8"
+typeCheckingMode = "strict"
+reportDuplicateImport = "warning"
+reportDeprecated = "warning"
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "@overload"]
+
+[tool.black]
+line-length = 120
+
+# https://beta.ruff.rs/docs/settings/
+[tool.ruff]
+fix = true # default: false
+line-length = 120 # default: 88
+fixable = ["ALL"]  # default: ["ALL"]
+include = ["discord", "discord.ext", "discord.ext.modal_paginator"]
+exclude = ["**/__pycache__", "_build", "build", "dist", "docs"]
+respect-gitignore = false  # default: true
+tab-size = 4  # default: 4
+target-version = "py38"  # default: "py38"
+
+[tool.ruff.flake8-annotations]
+allow-star-arg-any = true # default: false
+ignore-fully-untyped = true  # default: false
+mypy-init-return = false # default: false
+suppress-dummy-args = true # default: false
+suppress-none-returning = false # default: false
+
+[tool.ruff.flake8-bandit]
+check-typed-exception = true  # default: false
+
+[tool.ruff.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true  # default: false
+
+[tool.ruff.flake8-import-conventions]
+[tool.ruff.flake8-import-conventions.aliases]
+# Declare the default aliases. (for future reference)
+altair = "alt"
+"matplotlib.pyplot" = "plt"
+numpy = "np"
+pandas = "pd"
+seaborn = "sns"
+scipy = "sp"
+
+[tool.ruff.flake8-quotes]
+# Don't bother trying to avoid escapes.
+avoid-escape = false  # default: false
+
+[tool.ruff.flake8-type-checking]
+strict = true
+
+[tool.ruff.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.ruff.isort]
+case-sensitive = true  # default: false
+combine-as-imports = true  # default: false 
+force-sort-within-sections = true  # default: false
+force-to-top = ["future", "typing"]  # default: []
+force-wrap-aliases = true  # default: false
+order-by-type = true  # default: true
+required-imports = ["from __future__ import annotations"]  # default: []
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]  # default
+split-on-trailing-comma = true # default: true
+
+[tool.ruff.pydocstyle]
+convention = "numpy"  # default: none
+ignore-decorators = ["typing.overload"]  # default: []
+
+[tool.ruff.pylint]
+max-args = 20  # default: 5 # lets not limit ourselves :)
+
+[tool.ruff.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true  # default: false
+
