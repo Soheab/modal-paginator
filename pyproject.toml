@@ -14,7 +14,7 @@ keywords = [
     "extension",
     "discord.ext",
     "modal",
-    "form",
+    "forum",
 ]
 license = { file = "LICENSE" }
 dependencies = ["discord.py>=2.0.0, <3.0.0"]
