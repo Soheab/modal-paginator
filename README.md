@@ -11,7 +11,7 @@ python -m pip install discord-ext-modal_paginator
 **GitHub**: https://github.com/Soheab/modal-paginator
 
 ## Example
-See [examples/verify_command.py](/examples/verify_command.py) for a complete example.
+See [examples/verify_command.py](https://github.com/Soheab/modal-paginator/blob/main/examples/verify_command.py) for a complete example.
 And read the source code for more information, it has docstrings and comments.
 
 ## Documentation
