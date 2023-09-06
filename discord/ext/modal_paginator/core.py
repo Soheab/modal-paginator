@@ -227,8 +227,8 @@ class ModalPaginator(discord.ui.View):
     modals: Optional[Sequence[Union[:class:`PaginatorModal`, :class:`discord.ui.Modal`]]]
         The modals to add to the paginator.
         Modals can also be added later using :meth:`ModalPaginator.add_modal`.
-    interaction: Optional[:class:`discord.Interaction[Any]`]
-        The interaction to use for the paginator. Defaults to ``None``.
+    author_id: Optional[:class:`int`]
+        ID of the author that can interact with the paginator. Defaults to everyone can interact.
     check: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction[Any]`], :class:`bool`]]
         A check that is run when the paginator is interacted with (``interaction_check``). Defaults to ``None``.
     finish_callback: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction[Any]`], Coroutine[Any, Any, Any]]]
@@ -239,15 +239,13 @@ class ModalPaginator(discord.ui.View):
         Whether the paginator should disable all buttons after it's finished or cancelled. Defaults to ``True``.
     timeout: :class:`float`
         The timeout of the paginator. Defaults to ``None``. Timeouts aren't really handled.
+    sort_modals: :class:`bool`
+        Whether the modals should be sorted by required. Defaults to ``True``.
 
     Attributes
     -----------
     author_id: Optional[:class:`int`]
         ID of the author that can interact with the paginator. Defaults to everyone can interact.
-    current_page: :class:`int`
-        The current page of the paginator.
-    current_modal: Optional[:class:`PaginatorModal`]
-        The current modal of the paginator.
     """  # noqa: E501
 
     message: MessageT
