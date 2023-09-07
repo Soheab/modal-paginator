@@ -552,8 +552,6 @@ class ModalPaginator(discord.ui.View):
                 self.message = await obj.original_response()
             else:
                 self.message = await obj.followup.send(self.page_string, view=self, wait=True)
-        elif isinstance(obj, Context):
-            self.message = await obj.send(self.page_string, view=self)
         else:
             self.message = await obj.send(self.page_string, view=self)
 
