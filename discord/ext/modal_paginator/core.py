@@ -556,20 +556,7 @@ class ModalPaginator(discord.ui.View):
         return self.message
 
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, row=1)
-    async def preview_page(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
-        """This is called when the "Previous" button is pressed.
-
-        This checks whether the current modal is required but not filled in by the user.
-        If so, it will send a message saying that the user should complete the current modal before going back.
-        And if not, it will decrement the current page and update the message.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction[Any]`
-            The interaction to use for the paginator.
-        button: :class:`discord.ui.Button`
-            The button that was pressed.
-        """
+    async def preview_page(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
         if self._is_locked():
             await interaction.response.send_message(
                 "Please complete the current modal before going back.", ephemeral=True, delete_after=5
@@ -581,20 +568,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple, row=1)
     async def next_page(self, interaction: discord.Interaction, _: discord.ui.Button[Self]) -> None:
-        """This is called when the "Next" button is pressed.
-
-        This checks whether the current modal is required but not filled in by the user.
-        If so, it will send a message saying that the user should complete the current modal
-        before going to the next one.
-        And if not, it will increment the current page and update the message.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction[Any]`
-            The interaction to use for the paginator.
-        button: :class:`discord.ui.Button`
-            The button that was pressed.
-        """
         if self._is_locked():
             await interaction.response.send_message(
                 "Please complete the current modal before going to the next one.", ephemeral=True, delete_after=5
@@ -606,18 +579,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Open", row=0)
     async def open_button(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
-        """This is called when the "(*)Open" button is pressed.
-
-        This opens the current modal. The label will be ``*Open`` if the current modal is required but
-        not filled in by the user.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction[Any]`
-            The interaction to use for the paginator.
-        button: :class:`discord.ui.Button`
-            The button that was pressed.
-        """
         self._current_modal = self.get_modal()
         # for typing purposes, it shouldn't be None
         if not self.current_modal:
@@ -632,19 +593,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Finish", style=discord.ButtonStyle.green, row=2)
     async def finish_button(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
-        """This is called when the "Finish" button is pressed.
-
-        This checks whether all required modals are finished.
-        If not, it will send a message saying that the user shouldn't be able to press this button.
-        And if so, it will stop the paginator and call :meth:`ModalPaginator.on_finish`.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction[Any]`
-            The interaction to use for the paginator.
-        button: :class:`discord.ui.Button`
-            The button that was pressed.
-        """
         if not all(m.is_finished() for m in self._modals if m.required):
             await interaction.response.send_message(
                 "You shouldn't be able to press this button... please finish all required modals.",
@@ -658,16 +606,5 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, row=2)
     async def cancel_button(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
-        """This is called when the "Cancel" button is pressed.
-
-        This stops the paginator and calls :meth:`ModalPaginator.on_cancel`.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction[Any]`
-            The interaction to use for the paginator.
-        button: :class:`discord.ui.Button`
-            The button that was pressed.
-        """
         self.stop()
         await self.on_cancel(interaction)
