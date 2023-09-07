@@ -106,6 +106,12 @@ class VerifyModal(ModalPaginator):
     async def on_finish(self, interaction: discord.Interaction[Any]) -> None:
         # you probably don't need to defer the response here.
         await interaction.response.defer()
+        # call the original on_finish method
+        # which will also disable the buttons
+        await super().on_finish(interaction)
+
+        # create a list of answers
+        # default format: **Modal Title**\nQuestion: Answer\nQuestion: Answer\n... etc
         answers: list[str] = []
         for modal in self.modals:
             prefix = f"**{modal.title}**\n"
