@@ -224,7 +224,7 @@ class ModalPaginator(discord.ui.View):
 
     Parameters
     -----------
-    modals: Optional[Sequence[Union[:class:`PaginatorModal`, :class:`discord.ui.Modal`]]]
+    modals: Optional[Sequence[:class:`discord.ui.Modal`]]
         The modals to add to the paginator.
         Modals can also be added later using :meth:`ModalPaginator.add_modal`.
     author_id: Optional[:class:`int`]
@@ -252,7 +252,7 @@ class ModalPaginator(discord.ui.View):
 
     def __init__(
         self,
-        modals: Optional[Sequence[Union[PaginatorModal, discord.ui.Modal]]] = None,
+        modals: Optional[Sequence[discord.ui.Modal]] = None,
         *,
         author_id: Optional[int] = None,
         check: Optional[PaginatorCallable[Self, bool]] = None,
@@ -265,9 +265,6 @@ class ModalPaginator(discord.ui.View):
         super().__init__(timeout=timeout)
         if modals is None:
             modals = []
-
-        if not all(isinstance(modal, (PaginatorModal, discord.ui.Modal)) for modal in modals):
-            raise TypeError("Expected all modals to be an instance of PaginatorModal or discord.ui.Modal")
 
         if not can_go_back:
             self.remove_item(self.preview_page)
@@ -319,57 +316,62 @@ class ModalPaginator(discord.ui.View):
         Raises
         -------
         TypeError
-            If a modal is not an instance of :class:`PaginatorModal` or :class:`discord.ui.Modal`.
+            If a modal is not an instance/subcass of :class:`discord.ui.Modal`.
         """
+        modals: list[PaginatorModal] = []
         for idx, modal in enumerate(self._modals.copy()):
             ERROR_MESSAGE = (
-                "Expected all modals to be an instance of PaginatorModal or discord.ui.Modal."
+                "Expected all modals to be an instance/subclass of discord.ui.Modal. "
                 'The modal at index {idx} with title "{modal.title}" is not.'
             )
-            # maybe the user monkeypatches the list? Just to be sure.
-            if isinstance(modal, discord.ui.Modal):  # pyright: ignore [reportUnnecessaryIsInstance]
-                self._modals[idx] = PaginatorModal._to_self(self, modal)  # pyright: ignore [reportPrivateUsage]
-                continue
-
-            if not isinstance(modal, PaginatorModal):
+            # just in case
+            if not isinstance(modal, discord.ui.Modal):  # pyright: ignore [reportUnnecessaryIsInstance]
                 raise TypeError(ERROR_MESSAGE.format(idx=idx, modal=modal))
 
+            # just in case
+            # and maybe faster than doing this always?
+            if not isinstance(modal, PaginatorModal):  # pyright: ignore [reportUnnecessaryIsInstance]
+                modal = PaginatorModal._to_self(self, modal)  # pyright: ignore [reportPrivateUsage]
+
+            modals.append(modal)
+
+        self._modals = modals
         self._max_pages = len(self._modals) - 1
         # sort by required if sort_modals is True
         if self._sort_modals:
             self._modals.sort(key=lambda m: m.required, reverse=True)
 
-    def add_modal(self, modal: Union[PaginatorModal, discord.ui.Modal]) -> None:
+    def add_modal(self, modal: discord.ui.Modal) -> None:
         """Adds a modal to the paginator.
 
         Parameters
         -----------
-        modal: Union[:class:`PaginatorModal`, :class:`discord.ui.Modal`]
+        modal: :class:`discord.ui.Modal`
             The modal to add to the paginator.
 
         Raises
         -------
         TypeError
-            If the modal is not an instance of :class:`PaginatorModal` or :class:`discord.ui.Modal`.
+            If the modal is not an instance/subclass of :class:`discord.ui.Modal`.
         """
-        if not isinstance(modal, (PaginatorModal, discord.ui.Modal)):
-            raise TypeError(
-                f"Expected modal to be an instance of PaginatorModal or discord.ui.Modal, not {type(modal)}."
-            )
+        if not isinstance(
+            modal, discord.ui.Modal
+        ):  # pyright: ignore [reportUnnecessaryIsInstance] # no, that's just the type...
+            raise TypeError(f"Expected modal to be an instance/subclass of discord.ui.Modal, not {type(modal)}.")
 
         self._modals.append(PaginatorModal._to_self(self, modal))  # pyright: ignore [reportPrivateUsage]
         self._max_pages += 1
 
-    def remove_modal(self, modal: Union[PaginatorModal, discord.ui.Modal]) -> None:
+    def remove_modal(self, modal: PaginatorModal) -> None:
         """Removes a modal from the paginator. Nothing happens if the modal is not in the paginator.
 
         Parameters
         -----------
-        modal: Union[:class:`PaginatorModal`, :class:`discord.ui.Modal`]
+        modal: :class:`PaginatorModal`
             The modal to remove from the paginator.
         """
         try:
-            self._modals.remove(PaginatorModal._to_self(self, modal))  # pyright: ignore [reportPrivateUsage]
+            self._modals.remove(modal)
         except ValueError:
             pass
         else:
