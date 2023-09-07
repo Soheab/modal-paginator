@@ -5,9 +5,9 @@ An extension for [discord.py](https://github.com/rapptz/discord.py)  that allows
 
 ## Installation
 ```sh
-python -m pip install discord-ext-modal_paginator
+python -m pip install discord-ext-modal-paginator
 ```
-**PyPI**: https://pypi.org/project/discord-ext-modal_paginator/ \
+**PyPI**: https://pypi.org/project/discord-ext-modal-paginator/ \
 **GitHub**: https://github.com/Soheab/modal-paginator
 
 ## Example
