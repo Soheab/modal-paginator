@@ -285,7 +285,7 @@ class ModalPaginator(discord.ui.View):
 
     @property
     def modals(self) -> list[PaginatorModal]:
-        """:class:`list[PaginatorModal]`: The modals of the paginator."""
+        """List[:class:`PaginatorModal`]: The modals in the paginator."""
         return self._modals
 
     @property
@@ -297,8 +297,8 @@ class ModalPaginator(discord.ui.View):
     def page_string(self) -> str:
         """:class:`str`: String that represents the current page.
 
-        By default, this is ``{current_modal.title}\n\n{current_page + 1}/{len(self.modals)}``
-        if the current modal is not ``None`` else ``{current_page + 1}/{len(self.modals)}``.
+        By default, this is ``{current_modal.title}\n\n{current_page + 1}/{len(modals)}``
+        if the current modal is not ``None`` else ``{current_page + 1}/{len(modals)}``.
         """
         base = f"{self.current_page + 1}/{len(self.modals)}"
         if self.current_modal:
@@ -308,7 +308,7 @@ class ModalPaginator(discord.ui.View):
 
     def _validate_pages(self) -> None:
         """Validates all modals in the paginator. Basically checks if all modals are
-        instances of :class:`PaginatorModal` or :class:`discord.ui.Modal` and
+        instances of :class:`discord.ui.Modal` and
         outputs a friendly error message if not.
 
         This is called in :meth:`ModalPaginator.send`.
