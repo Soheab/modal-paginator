@@ -13,6 +13,8 @@ from typing import (
 import discord
 from discord.ext import commands as _commands
 
+from .errors import NoModals, NotAModal
+
 if TYPE_CHECKING:
     from typing_extensions import Self
 else:
@@ -313,18 +315,16 @@ class ModalPaginator(discord.ui.View):
 
         Raises
         -------
-        TypeError
+        NotAModal
             If a modal is not an instance/subcass of :class:`discord.ui.Modal`.
+        NoModals
+            If no modals are added to the paginator.
         """
         modals: list[PaginatorModal] = []
         for idx, modal in enumerate(self._modals.copy()):
-            ERROR_MESSAGE = (
-                "Expected all modals to be an instance/subclass of discord.ui.Modal. "
-                'The modal at index {idx} with title "{modal.title}" is not.'
-            )
             # just in case
             if not isinstance(modal, discord.ui.Modal):  # pyright: ignore [reportUnnecessaryIsInstance]
-                raise TypeError(ERROR_MESSAGE.format(idx=idx, modal=modal))
+                raise NotAModal(modal, index=idx, param_name="all modals")  # bit of a hack but it works
 
             # just in case
             # and maybe faster than doing this always?
@@ -332,6 +332,9 @@ class ModalPaginator(discord.ui.View):
                 modal = PaginatorModal._to_self(self, modal)  # pyright: ignore [reportPrivateUsage]
 
             modals.append(modal)
+
+        if not modals:
+            raise NoModals()
 
         self._modals = modals
         self._max_pages = len(self._modals) - 1
@@ -349,13 +352,13 @@ class ModalPaginator(discord.ui.View):
 
         Raises
         -------
-        TypeError
+        NotAModal
             If the modal is not an instance/subclass of :class:`discord.ui.Modal`.
         """
         if not isinstance(
             modal, discord.ui.Modal
         ):  # pyright: ignore [reportUnnecessaryIsInstance] # no, that's just the type...
-            raise TypeError(f"Expected modal to be an instance/subclass of discord.ui.Modal, not {type(modal)}.")
+            raise NotAModal(modal, param_name="modal")
 
         self._modals.append(PaginatorModal._to_self(self, modal))  # pyright: ignore [reportPrivateUsage]
         self._max_pages += 1
