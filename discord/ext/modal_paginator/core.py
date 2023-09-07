@@ -14,25 +14,26 @@ from typing import (
 )
 
 import discord
-from discord.ext import commands
-
+from discord.ext import commands as _commands
 
 if TYPE_CHECKING:
     from typing_extensions import Self
-    from discord import Message, WebhookMessage, InteractionMessage
+else:
+    Self = Any
 
-    MessageT = Union[Message, WebhookMessage, InteractionMessage]
-
-    TextInpT = TypeVar("TextInpT", bound=discord.ui.TextInput[Any])
-
-
-Context = commands.Context
-
+MessageT = Union[discord.Message, discord.WebhookMessage, discord.InteractionMessage]
+TextInpT = TypeVar("TextInpT", bound=discord.ui.TextInput[Any])
 ClsT = TypeVar(
     "ClsT",
 )
 ReturnType = TypeVar("ReturnType")
 PaginatorCallable = Callable[[ClsT, discord.Interaction[Any]], Union[Coroutine[Any, Any, ReturnType], ReturnType]]
+
+
+__all__ = (
+    "PaginatorModal",
+    "ModalPaginator",
+)
 
 
 class PaginatorModal(discord.ui.Modal):
@@ -517,7 +518,7 @@ class ModalPaginator(discord.ui.View):
 
     async def send(
         self,
-        obj: Union[discord.abc.Messageable, discord.Interaction[Any], Context[Any]],
+        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
         **kwargs: Any,
     ) -> MessageT:
         """Sends the paginator.
