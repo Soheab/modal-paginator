@@ -30,6 +30,7 @@ personal_questions = {
 }
 misc_questions = {
     "title": "Miscellaneous Questions",
+    "required": False,
     "questions": [
         "What is your favorite color?",
         "What is your favorite food?",
@@ -40,6 +41,7 @@ misc_questions = {
 }
 reason_questions = {
     "title": "Why Questions",
+    "required": True,
     "questions": [
         "Why do you want to join?",
         "Why should we let you in?",
