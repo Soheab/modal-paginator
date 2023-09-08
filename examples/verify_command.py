@@ -2,7 +2,7 @@
 from typing import Any, Dict, List
 
 # import the paginator and modal...
-from ..discord.ext.modal_paginator import ModalPaginator, PaginatorModal
+from discord.ext.modal_paginator import ModalPaginator, PaginatorModal
 
 # import the discord.py module
 import discord
