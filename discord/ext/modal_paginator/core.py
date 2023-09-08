@@ -306,12 +306,20 @@ class ModalPaginator(discord.ui.View):
         else:
             return base
 
-    def _validate_pages(self) -> None:
+    def validate_pages(self) -> None:
         """Validates all modals in the paginator. Basically checks if all modals are
         instances of :class:`discord.ui.Modal` and
         outputs a friendly error message if not.
 
         This is called in :meth:`ModalPaginator.send`.
+
+        This does the following:
+        - Checks if all modals are instances of :class:`discord.ui.Modal`.
+        - Sorts the modals by required if ``sort_modals`` is ``True``.
+        - Sets the :attr:`ModalPaginator.current_modal` to the first modal in the list.
+        - Handles the button states.
+
+        This should be called before sending the paginator if subclassing and overriding ``send``.
 
         Raises
         -------
@@ -341,6 +349,9 @@ class ModalPaginator(discord.ui.View):
         # sort by required if sort_modals is True
         if self._sort_modals:
             self._modals.sort(key=lambda m: m.required, reverse=True)
+
+        self._current_modal = self.get_modal()
+        self._handle_button_states()
 
     def add_modal(self, modal: discord.ui.Modal) -> None:
         """Adds a modal to the paginator.
@@ -523,6 +534,9 @@ class ModalPaginator(discord.ui.View):
     ) -> MessageT:
         """Sends the paginator.
 
+        This calls :meth:`ModalPaginator.validate_pages` before sending the paginator.
+        Make sure to call said method if subclassing and overriding this method.
+
         Parameters
         -----------
         obj: Union[:class:`~discord.abc.Messageable`, :class:`~discord.Interaction[Any]`, :class:`~discord.ext.commands.Context`]
@@ -542,10 +556,8 @@ class ModalPaginator(discord.ui.View):
             interaction was not responded to. Subclass to change this behaviour.
 
         """  # noqa: E501
-        self._validate_pages()
-        self._current_modal = self.get_modal()
+        self.validate_pages()
 
-        self._handle_button_states()
         if isinstance(obj, discord.Interaction):
             self.interaction = obj
             if not obj.response.is_done():
