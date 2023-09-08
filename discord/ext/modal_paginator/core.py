@@ -316,9 +316,9 @@ class ModalPaginator(discord.ui.View):
         Raises
         -------
         NotAModal
-            If a modal is not an instance/subcass of :class:`discord.ui.Modal`.
+            A modal is not an instance/subclass of :class:`discord.ui.Modal`.
         NoModals
-            If no modals are added to the paginator.
+            There are no modals in the paginator.
         """
         modals: list[PaginatorModal] = []
         for idx, modal in enumerate(self._modals.copy()):
@@ -348,12 +348,12 @@ class ModalPaginator(discord.ui.View):
         Parameters
         -----------
         modal: :class:`discord.ui.Modal`
-            The modal to add to the paginator.
+            The modal to add.
 
         Raises
         -------
         NotAModal
-            If the modal is not an instance/subclass of :class:`discord.ui.Modal`.
+            The modal is not an instance/subclass of :class:`discord.ui.Modal`.
         """
         if not isinstance(
             modal, discord.ui.Modal
@@ -369,7 +369,7 @@ class ModalPaginator(discord.ui.View):
         Parameters
         -----------
         modal: :class:`PaginatorModal`
-            The modal to remove from the paginator.
+            The modal to remove.
         """
         try:
             self._modals.remove(modal)
@@ -499,7 +499,7 @@ class ModalPaginator(discord.ui.View):
     async def disable_all_buttons(self, interaction: discord.Interaction[Any]) -> None:
         """Disables all buttons.
 
-        Uses the interaction if not responded to, else `self.message`.
+        Uses the interaction if not responded else calls ``edit`` on the :attr:`ModalPaginator.message`.
 
         Parameters
         -----------
