@@ -36,7 +36,7 @@ __all__ = (
 
 
 class PaginatorModal(discord.ui.Modal):
-    """Represents a modal that can be used in a :class:`ModalPaginator`.
+    """Represents a modal that can be used in a :class:`.ModalPaginator`.
 
     Parameters
     -----------
@@ -48,22 +48,14 @@ class PaginatorModal(discord.ui.Modal):
         The custom ID of the modal. Defaults to ``discord.utils.MISSING``.
     timeout: :class:`float`
         The timeout of the modal. Defaults to ``180.0``.
-    callback: Optional[Callable[[:class:`PaginatorModal`, :class:`discord.Interaction[Any]`], Coroutine[Any, Any, Any]]]
+    callback: Optional[Callable[[:class:`PaginatorModal`, :class:`discord.Interaction`], Coroutine[Any, Any, Any]]]
         A callback that is run when the modal is interacted with (``on_submit``). Defaults to ``None``.
     required: :class:`bool`
         Whether the modal is required to be filled out before the paginator can be finished / user
         can go to the next/previous page. Defaults to ``False``.
-
-    Attributes
-    -----------
-    paginator: :class:`ModalPaginator`
-        The paginator.
-    required: :class:`bool`
-        Whether the modal is required to be filled out before the paginator can be finished / user
-        can go to the next page.
     """
 
-    paginator: ModalPaginator
+    _paginator: ModalPaginator
 
     def __init__(
         self,
@@ -81,10 +73,15 @@ class PaginatorModal(discord.ui.Modal):
         for inp in inputs:
             self.add_item(inp)
 
+    @property
+    def paginator(self) -> ModalPaginator:
+        """:class:`ModalPaginator`: The paginator of the modal."""
+        return self._paginator
+
     @classmethod
     def _to_self(cls, paginator: ModalPaginator, modal: discord.ui.Modal) -> Self:
         if isinstance(modal, cls):
-            modal.paginator = paginator
+            modal._paginator = paginator
             return modal
 
         inst = cls(
@@ -93,7 +90,7 @@ class PaginatorModal(discord.ui.Modal):
             timeout=modal.timeout or 180.0,
             *modal._children,
         )
-        inst.paginator = paginator
+        inst._paginator = paginator
         return inst
 
     def add_input(
@@ -162,7 +159,7 @@ class PaginatorModal(discord.ui.Modal):
 
     def append_input(self, text_input: TextInpT, /) -> TextInpT:
         """Appends a text input to the modal. Technically an alias for
-        :meth:`ModalPaginator.add_item` but this returns the text input
+        :meth:`discord.ui.Modal.add_item` but this returns the text input
         instead of the modal.
 
         Parameters
@@ -185,7 +182,7 @@ class PaginatorModal(discord.ui.Modal):
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The interaction to check.
 
         Returns
@@ -199,15 +196,19 @@ class PaginatorModal(discord.ui.Modal):
         """Called when the modal is submitted.
 
         The default implementation is the following:
-        - Increment the current page of the paginator.
-        - Stop the paginator using the ``stop`` method.
-        - If a ``callback`` was passed to the modal, run it.
-        else
-        - Call the default implementation of :meth:`discord.ui.Modal.on_submit`.
+
+        #. Increment the current page of the paginator.
+        #. Stop the paginator using the ``stop`` method.
+
+        * If a ``callback`` was passed to the modal, run it.
+
+        else:
+
+        * Call the default implementation of :meth:`discord.ui.Modal.on_submit`.
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The interaction to use for the paginator.
         """
         self.paginator.current_page += 1
@@ -220,18 +221,18 @@ class PaginatorModal(discord.ui.Modal):
 
 
 class ModalPaginator(discord.ui.View):
-    """A paginator for :class:`~discord.ui.Modal`
+    """A paginator for :class:`discord.ui.Modal`
 
     Parameters
     -----------
     modals: Optional[Sequence[:class:`discord.ui.Modal`]]
         The modals to add to the paginator.
-        Modals can also be added later using :meth:`ModalPaginator.add_modal`.
+        Modals can be added later using :meth:`ModalPaginator.add_modal`.
     author_id: Optional[:class:`int`]
         ID of the author that can interact with the paginator. Defaults to everyone can interact.
-    check: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction[Any]`], :class:`bool`]]
+    check: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], :class:`bool`]]
         A check that is run when the paginator is interacted with (``interaction_check``). Defaults to ``None``.
-    finish_callback: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction[Any]`], Coroutine[Any, Any, Any]]]
+    finish_callback: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], Coroutine[Any, Any, Any]]]
         A callback that is run when the paginator is finished (``on_finish``). Defaults to ``None``.
     can_go_back: :class:`bool`
         Whether the user can go back to previous pages using the "Previous" button. Defaults to ``True``.
@@ -246,9 +247,29 @@ class ModalPaginator(discord.ui.View):
     -----------
     author_id: Optional[:class:`int`]
         ID of the author that can interact with the paginator. Defaults to everyone can interact.
+
+    Example
+    --------
+    .. code-block:: python
+        :linenos:
+
+        paginator = ModalPaginator(
+            modals=[
+                discord.ui.Modal(title="Modal 1", custom_id="modal1"),
+                discord.ui.Modal(title="Modal 2", custom_id="modal2"),
+                ...
+            ],
+            author_id=000000000000000000,
+        )
+        await paginator.send(<messageable or Interaction>)
+        # don't want to use the send method? and want to send it yourself?
+        # call paginator.validate_pages() before sending the view (paginator):
+        # paginator.validate_pages()
+        # await messageable.send("...", view=paginator)
+
     """  # noqa: E501
 
-    message: MessageT
+    _message: Optional[MessageT] = None
 
     def __init__(
         self,
@@ -267,7 +288,7 @@ class ModalPaginator(discord.ui.View):
             modals = []
 
         if not can_go_back:
-            self.remove_item(self.preview_page)
+            self.remove_item(self.previous_page)
 
         self._modals: list[PaginatorModal] = [
             PaginatorModal._to_self(self, modal) for modal in modals  # pyright: ignore [reportPrivateUsage]
@@ -295,7 +316,7 @@ class ModalPaginator(discord.ui.View):
 
     @property
     def page_string(self) -> str:
-        """:class:`str`: String that represents the current page.
+        r""":class:`str`: String that represents the current page.
 
         By default, this is ``{current_modal.title}\n\n{current_page + 1}/{len(modals)}``
         if the current modal is not ``None`` else ``{current_page + 1}/{len(modals)}``.
@@ -306,6 +327,15 @@ class ModalPaginator(discord.ui.View):
         else:
             return base
 
+    @property
+    def message(self) -> Optional[MessageT]:
+        """Optional[Union[:class:`~discord.Message`, :class:`~discord.WebhookMessage`, :class:`~discord.InteractionMessage`]]:
+        The message that tje paginator is attached to. This is set in :meth:`ModalPaginator.send`.
+
+        This is ``None`` if the paginator is not sent using :meth:`ModalPaginator.send`.
+        """
+        return self._message
+
     def validate_pages(self) -> None:
         """Validates all modals in the paginator. Basically checks if all modals are
         instances of :class:`discord.ui.Modal` and
@@ -314,10 +344,11 @@ class ModalPaginator(discord.ui.View):
         This is called in :meth:`ModalPaginator.send`.
 
         This does the following:
-        - Checks if all modals are instances of :class:`discord.ui.Modal`.
-        - Sorts the modals by required if ``sort_modals`` is ``True``.
-        - Sets the :attr:`ModalPaginator.current_modal` to the first modal in the list.
-        - Handles the button states.
+
+        #. Checks if all modals are instances of :class:`discord.ui.Modal`.
+        #. Sorts the modals by required if ``sort_modals`` is ``True``.
+        #. Sets the :attr:`ModalPaginator.current_modal` to the first modal in the list.
+        #. Handles the button states.
 
         This should be called before sending the paginator if subclassing and overriding ``send``.
 
@@ -394,15 +425,20 @@ class ModalPaginator(discord.ui.View):
         when the modals are interacted with.
 
         The default implementation is the following:
-        - Check if a check was passed to the paginator. If so, run it.
+
+        * Check if a check was passed to the paginator. If so, run it.
+
         else:
-        - Check if the author ID is set. If so, check if the interaction's user ID is the same as the author ID.
+
+        * Check if the author ID is set. If so, check if the interaction's user ID is the same as the author ID.
+
         else:
-        - Call the default implementation of :meth:`discord.ui.View.interaction_check`.
+
+        * Call the default implementation of :meth:`discord.ui.View.interaction_check`.
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The interaction to check.
 
         Returns
@@ -422,11 +458,12 @@ class ModalPaginator(discord.ui.View):
         "Cancel" button is pressed.
 
         The default implementation is the following:
-        - If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
+
+        * If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The last interaction that was used for the paginator.
         """
         if self._disable_after:
@@ -436,12 +473,13 @@ class ModalPaginator(discord.ui.View):
         """A callback that is called when the paginator is finished. This is called when the "Finish" button is pressed.
 
         The default implementation is the following:
-        - If a finish callback was passed to the paginator, run it.
-        - If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
+
+        #. If a finish callback was passed to the paginator, run it.
+        #. If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The last interaction that was used for the paginator.
         """
         if self._finish_callback:
@@ -452,7 +490,8 @@ class ModalPaginator(discord.ui.View):
     def get_modal(self) -> PaginatorModal:
         """Returns the current modal according to the current page.
 
-        This is called in :meth:`ModalPaginator.update` and :meth:`ModalPaginator.send
+        This is called in :meth:`ModalPaginator.update`,
+        :meth:`ModalPaginator.validate_pages` and the "Open" button.
 
         Returns
         --------
@@ -467,9 +506,10 @@ class ModalPaginator(discord.ui.View):
         return self._modals[self.current_page]
 
     def _handle_button_states(self) -> None:
-        """Handles the button states.
+        """Handles the button states. E.g, change the Open button's name to *Open
+        if the current modal is required and not finished.
 
-        This is called in :meth:`ModalPaginator.update` and :meth:`ModalPaginator.send`.
+        This is called in :meth:`ModalPaginator.update` and :meth:`ModalPaginator.validate_pages`.
         """
         modal: Optional[PaginatorModal] = self.current_modal
 
@@ -482,7 +522,7 @@ class ModalPaginator(discord.ui.View):
             self.open_button.style = discord.ButtonStyle.blurple
 
         self.next_page.disabled = self.current_page >= self._max_pages or self._is_locked()
-        self.preview_page.disabled = not self._can_go_back or self.current_page <= 0
+        self.previous_page.disabled = not self._can_go_back or self.current_page <= 0
         self.finish_button.disabled = not all(m.is_finished() for m in self._modals if m.required)
 
     def _is_locked(self) -> bool:
@@ -500,7 +540,7 @@ class ModalPaginator(discord.ui.View):
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The interaction to use for the paginator.
         """
         self._current_modal = self.get_modal()
@@ -510,21 +550,21 @@ class ModalPaginator(discord.ui.View):
     async def disable_all_buttons(self, interaction: discord.Interaction[Any]) -> None:
         """Disables all buttons.
 
-        Uses the interaction if not responded else calls ``edit`` on the :attr:`ModalPaginator.message`.
+        Uses the interaction if not responded else calls ``.edit`` on the :attr:`ModalPaginator.message`.
 
         Parameters
         -----------
-        interaction: :class:`discord.Interaction[Any]`
+        interaction: :class:`discord.Interaction`
             The interaction to edit.
         """
         self.next_page.disabled = True
-        self.preview_page.disabled = True
+        self.previous_page.disabled = True
         self.open_button.disabled = True
         self.finish_button.disabled = True
         self.cancel_button.disabled = True
         if not interaction.response.is_done():
             await interaction.response.edit_message(view=self)
-        else:
+        elif self.message:
             await self.message.edit(view=self)
 
     async def send(
@@ -539,20 +579,20 @@ class ModalPaginator(discord.ui.View):
 
         Parameters
         -----------
-        obj: Union[:class:`~discord.abc.Messageable`, :class:`~discord.Interaction[Any]`, :class:`~discord.ext.commands.Context`]
+        obj: Union[:class:`~discord.abc.Messageable`, :class:`~discord.Interaction`, :class:`~discord.ext.commands.Context`]
             The desination to send the paginator to. if :class:`~discord.Interaction` is passed, the paginator will be sent
             as a response to the interaction or as a followup if the interaction is already responded to.
         ephemeral: :class:`bool`
             Whether the paginator should be ephemeral. Defaults to ``False``. This is only used if ``obj`` is an interaction.
         **kwargs: Any
-            Additional keyword arguments to the destination's ``send`` method.
+            Additional keyword arguments to the destination's sending method.
 
         Returns
         --------
         Union[:class:`~discord.Message`, :class:`~discord.WebhookMessage`, :class:`~discord.InteractionMessage`]
             The message that was sent.
 
-            :meth:`discord.Interaction.original_response` is used if ``obj`` is an interaction and the
+            :meth:`discord.Interaction.original_response` is used if ``obj`` is an :class:`discord.Interaction` and the
             interaction was not responded to. Subclass to change this behaviour.
 
         """  # noqa: E501
@@ -562,16 +602,16 @@ class ModalPaginator(discord.ui.View):
             self.interaction = obj
             if not obj.response.is_done():
                 await obj.response.send_message(self.page_string, view=self)
-                self.message = await obj.original_response()
+                self._message = await obj.original_response()
             else:
-                self.message = await obj.followup.send(self.page_string, view=self, wait=True)
+                self._message = await obj.followup.send(self.page_string, view=self, wait=True)
         else:
-            self.message = await obj.send(self.page_string, view=self)
+            self._message = await obj.send(self.page_string, view=self)
 
-        return self.message
+        return self.message  # type: ignore # shouldn't be None here...
 
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, row=1)
-    async def preview_page(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
+    async def previous_page(self, interaction: discord.Interaction[Any], _: discord.ui.Button[Self]) -> None:
         if self._is_locked():
             await interaction.response.send_message(
                 "Please complete the current modal before going back.", ephemeral=True, delete_after=5

@@ -33,6 +33,13 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = ["black", "ruff", "typing_extensions"]
+docs = [
+    "Sphinx==6.1",
+    "furo",
+    # "sphinx_rtd_theme==1.2.*",
+    "sphinx-autodoc-typehints==1.22",
+    "enum-tools[sphinx]==0.9.*",
+]
 
 [tool.setuptools]
 packages = ["discord", "discord.ext", "discord.ext.modal_paginator"]
@@ -42,10 +49,9 @@ homepage = "https://github.com/Soheab/modal-paginator"
 # documentation = "...""
 repository = "https://github.com/Soheab/modal-paginator"
 
-
 [tool.setuptools.dynamic]
 version = { attr = "discord.ext.modal_paginator.__version__" }
-readme = { file = ["README.md"], content-type = "text/markdown" }
+readme = { file = ["README.rst"], content-type = "text/x-rst" }
 
 [tool.pyright]
 include = ["discord", "discord.ext", "discord.ext.modal_paginator"]
