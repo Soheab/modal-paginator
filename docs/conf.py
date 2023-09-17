@@ -9,7 +9,7 @@
 project = "modal-paginator"
 copyright = "2023, Soheab_"
 author = "Soheab_"
-release = "1.0.0"
+release = "1.1.0a"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
