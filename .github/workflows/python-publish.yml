@@ -5,7 +5,9 @@ on:
 jobs:
   pypi:
     runs-on: ubuntu-latest
-    environment: releases
+    environment:
+      name: releases
+      url: https://pypi.org/project/discord-ext-modal-paginator/
     steps:
       - name: Checkout
         uses: actions/checkout@v3
