@@ -13,7 +13,8 @@ An extension for discord.py that allows you to paginate a Modal using buttons.
    :caption: API Reference
    :maxdepth: 1
 
-   classes 
+   classes
+   custom_buttons 
    errors
    whats_new
 

@@ -1,15 +1,17 @@
-from typing import Optional
-from discord import DiscordException
+from typing import Optional, Tuple
+
+import discord
 
 
 __all__ = (
     "ModalPaginatorException",
     "NotAModal",
     "NoModals",
+    "InvalidButtonKey",
 )
 
 
-class ModalPaginatorException(DiscordException):
+class ModalPaginatorException(discord.DiscordException):
     """Base exception class for this extension."""
 
     pass
@@ -43,3 +45,12 @@ class NoModals(ModalPaginatorException):
 
     def __init__(self) -> None:
         super().__init__("No modals have been added to the paginator.")
+
+
+class InvalidButtonKey(ModalPaginatorException):
+    """Raised when a button key does not exist."""
+
+    def __init__(self, key: str, valid_keys: Tuple[str, ...]) -> None:
+        self.key: str = key
+        keys = ", ".join(valid_keys)
+        super().__init__(f"Invalid key in button dictionary: {key!r}. Valid keys are: {keys}")
