@@ -90,7 +90,7 @@ typehints_use_signature_return = False
 napoleon_use_param = True
 autodoc_typehints = "none"
 autodoc_class_signature = "separated"
-typehints_use_signature = True
+typehints_use_signature = False
 
 nitpicky = True
 nitpick_ignore = [
