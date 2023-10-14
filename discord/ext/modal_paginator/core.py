@@ -370,7 +370,13 @@ class ModalPaginator(discord.ui.View):
         *inputs: :class:`discord.ui.TextInput`
             The text inputs to add to the modals.
 
+
         Other parameters are the same as :class:`ModalPaginator`.
+
+        Returns
+        --------
+        :class:`ModalPaginator`
+            The constructed paginator with the modals.
         """
         modals: List[PaginatorModal] = []
         for text_inputs in discord.utils.as_chunks(inputs, 5):
