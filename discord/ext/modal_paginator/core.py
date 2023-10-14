@@ -435,10 +435,8 @@ class ModalPaginator(discord.ui.View):
     def _set_buttons(self, buttons: CustomButtons) -> Dict[ButtonKeysLiteral, discord.ui.Button[Any]]:
         """Sets the buttons of the paginator."""
 
-        res: Dict[ButtonKeysLiteral, discord.ui.Button[Any]] = {}
-        if self._buttons_are_default:
-            return buttons  # type: ignore  # default buttons are always CustomButton
 
+        res: Dict[ButtonKeysLiteral, discord.ui.Button[Any]] = {}
         valid_keys: Tuple[str, ...] = tuple(DEFAULT_BUTTONS.keys())
 
         def set_attributes(original_button: discord.ui.Button[Any], custom_button: discord.ui.Button[Any]) -> None:
