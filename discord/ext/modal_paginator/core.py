@@ -718,39 +718,48 @@ class ModalPaginator(discord.ui.View):
         else:
             return await super().interaction_check(interaction)
 
+    async def __cancel_impl(self, interaction: discord.Interaction[Any]) -> None:
+        self.stop()
+        if self._disable_after:
+            await self.disable_all_buttons(interaction)
+
+        await self.on_cancel(interaction)
+        return
+
     async def on_cancel(self, interaction: discord.Interaction[Any]) -> None:
         """A callback that is called when the paginator is cancelled. This is called when the
         "Cancel" button is pressed.
 
-        The default implementation is the following:
-
-        * If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
+        The default implementation does nothing.
 
         Parameters
         -----------
         interaction: :class:`discord.Interaction`
             The last interaction that was used for the paginator.
         """
-        if self._disable_after:
-            await self.disable_all_buttons(interaction)
+        pass
 
-    async def on_finish(self, interaction: discord.Interaction[Any]) -> None:
-        """A callback that is called when the paginator is finished. This is called when the "Finish" button is pressed.
-
-        The default implementation is the following:
-
-        #. If a finish callback was passed to the paginator, run it.
-        #. If ``disable_after`` is ``True``, disable all buttons using :meth:`ModalPaginator.disable_all_buttons`.
-
-        Parameters
-        -----------
-        interaction: :class:`discord.Interaction`
-            The last interaction that was used for the paginator.
-        """
+    async def __finish_impl(self, interaction: discord.Interaction[Any]) -> None:
+        self.stop()
         if self._finish_callback:
             await discord.utils.maybe_coroutine(self._finish_callback, self, interaction)
         if self._disable_after:
             await self.disable_all_buttons(interaction)
+
+        await self.on_finish(interaction)
+        return
+
+    async def on_finish(self, interaction: discord.Interaction[Any]) -> None:
+        """A callback that is called when the paginator is finished. This is called when the "Finish" button is pressed.
+
+        The default implementation does nothing.
+
+        Parameters
+        -----------
+        interaction: :class:`discord.Interaction`
+            The last interaction that was used for the paginator.
+        """
+        pass
 
     def get_modal(self) -> PaginatorModal:
         """Returns the current modal according to the current page.
@@ -908,13 +917,11 @@ class ModalPaginator(discord.ui.View):
             )
             return
 
-        self.stop()
-        await self.on_finish(interaction)
+        await self.__finish_impl(interaction)
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, row=2, custom_id="CANCEL")
     async def cancel_button(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
         if callback := self._get_override_callback(button):
             return await callback(interaction)
 
-        self.stop()
-        await self.on_cancel(interaction)
+        await self.__cancel_impl(interaction)

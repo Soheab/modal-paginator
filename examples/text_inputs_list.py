@@ -89,9 +89,6 @@ class TextInputPaginator(ModalPaginator):
         # and send the message
         await interaction.response.send_message("\n".join(answers))
 
-        # call the original on_finish method
-        await super().on_finish(interaction)
-
 
 bot = commands.Bot(command_prefix=commands.when_mentioned, intents=discord.Intents(messages=True, guilds=True))
 

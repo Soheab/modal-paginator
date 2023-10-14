@@ -106,12 +106,6 @@ class VerifyModal(ModalPaginator):
 
     # override the on_finish method to send the answers to the channel when the paginator is finished.
     async def on_finish(self, interaction: discord.Interaction[Any]) -> None:
-        # you probably don't need to defer the response here.
-        await interaction.response.defer()
-        # call the original on_finish method
-        # which will also disable the buttons
-        await super().on_finish(interaction)
-
         # create a list of answers
         # default format: **Modal Title**\nQuestion: Answer\nQuestion: Answer\n... etc
         answers: list[str] = []
@@ -123,7 +117,7 @@ class VerifyModal(ModalPaginator):
 
             answers.append(prefix)
 
-        await interaction.followup.send(f"Answers from {interaction.user.mention}:\n\n" + "\n\n".join(answers))
+        await interaction.response.send_message(f"Answers from {interaction.user.mention}:\n\n" + "\n\n".join(answers))
 
 
 # define the prefix command.

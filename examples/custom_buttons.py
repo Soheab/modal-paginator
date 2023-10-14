@@ -85,8 +85,6 @@ class Test(ModalPaginator):
         # send a message saying "Done!" to the user
         # ephemeral=True means only the user can see the message
         await interaction.response.send_message("Done!", ephemeral=True)
-        # call the original on_finish method
-        await super().on_finish(interaction)
 
 
 bot = commands.Bot(command_prefix=commands.when_mentioned, intents=discord.Intents(messages=True, guilds=True))
