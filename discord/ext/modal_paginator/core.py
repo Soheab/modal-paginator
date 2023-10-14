@@ -264,9 +264,9 @@ class ModalPaginator(discord.ui.View):
 
             buttons = {
                 # change the previous button's style to red
-                "PREVIOUS": CustomButton(label="Stop"),
-                # change the finish button's style to red
-                "FINISH": CustomButton(style=discord.ButtonStyle.red),
+                "PREVIOUS": CustomButton(style=discord.ButtonStyle.red),
+                # change the finish button's label to "Done"
+                "FINISH": CustomButton(label="Done"),
                 # remove the cancel button
                 "CANCEL": None,
             }
@@ -374,7 +374,7 @@ class ModalPaginator(discord.ui.View):
     @property
     def message(self) -> Optional[MessageT]:
         """Optional[Union[:class:`~discord.Message`, :class:`~discord.WebhookMessage`, :class:`~discord.InteractionMessage`]]:
-        The message that tje paginator is attached to. This is set in :meth:`ModalPaginator.send`.
+        The message that the paginator is attached to. This is set in :meth:`ModalPaginator.send`.
 
         This is ``None`` if the paginator is not sent using :meth:`ModalPaginator.send`.
         """
