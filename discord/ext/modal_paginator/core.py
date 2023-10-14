@@ -363,6 +363,15 @@ class ModalPaginator(discord.ui.View):
         buttons: Optional[CustomButtons] = None,
         modal_title: str = "Enter your input",
     ) -> ModalPaginator:
+        """A shortcut method to create a :class:`ModalPaginator` with a list of text inputs.
+
+        Parameters
+        -----------
+        *inputs: :class:`discord.ui.TextInput`
+            The text inputs to add to the modals.
+
+        Other parameters are the same as :class:`ModalPaginator`.
+        """
         modals: List[PaginatorModal] = []
         for text_inputs in discord.utils.as_chunks(inputs, 5):
             modal = PaginatorModal(title=modal_title, *text_inputs)
