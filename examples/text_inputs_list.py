@@ -103,7 +103,7 @@ async def test(ctx: commands.Context[commands.Bot]):
     # defining an instance of the paginator with the classmethod from_text_inputs.
     # passing the text_inputs list, author_id, modals title and custom buttons.
     paginator = TextInputPaginator.from_text_inputs(
-        text_inputs,  # pyright: ignore [reportGeneralTypeIssues]
+        *text_inputs,  # pyright: ignore [reportUnknownArgumentType]
         author_id=ctx.author.id,
         # passing the class attributes we defined earlier
         modal_title=TextInputPaginator.MODAL_TITLE,

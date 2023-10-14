@@ -391,7 +391,7 @@ class ModalPaginator(discord.ui.View):
         """
         modals: List[PaginatorModal] = []
         for text_inputs in discord.utils.as_chunks(inputs, 5):
-            modal = PaginatorModal(title=modal_title, *text_inputs)
+            modal = PaginatorModal(*text_inputs, title=modal_title, required=True)
             modals.append(modal)
 
         return cls(
