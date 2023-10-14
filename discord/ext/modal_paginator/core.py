@@ -239,6 +239,14 @@ class ModalPaginator(discord.ui.View):
         Modals can be added later using :meth:`ModalPaginator.add_modal`.
     author_id: Optional[:class:`int`]
         ID of the author that can interact with the paginator. Defaults to everyone can interact.
+    auto_finish: :class:`bool`
+        Whether the paginator should automatically finish when all required modals are filled in. Defaults to ``False``.
+        All modals must be required if this is ``True``.
+
+        This changes the following:
+
+        #. Remove the "Finish" button.
+        #. Call :meth:`ModalPaginator.on_finish` when all required modals are filled in.
     check: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], :class:`bool`]]
         A check that is run when the paginator is interacted with (``interaction_check``). Defaults to ``None``.
     finish_callback: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], Coroutine[Any, Any, Any]]]
@@ -307,6 +315,7 @@ class ModalPaginator(discord.ui.View):
         modals: Optional[Sequence[discord.ui.Modal]] = None,
         *,
         author_id: Optional[int] = None,
+        auto_finish: bool = False,
         check: Optional[PaginatorCallable[Self, bool]] = None,
         finish_callback: Optional[PaginatorCallable[Self, Any]] = None,
         timeout: Optional[Union[int, float]] = None,
@@ -331,6 +340,7 @@ class ModalPaginator(discord.ui.View):
         self._disable_after: bool = disable_after
         self._can_go_back = can_go_back
         self._sort_modals = sort_modals
+        self.auto_finish = auto_finish
 
         self.author_id: Optional[int] = author_id
         self.current_page: int = 0
@@ -435,6 +445,9 @@ class ModalPaginator(discord.ui.View):
     def _set_buttons(self, buttons: CustomButtons) -> Dict[ButtonKeysLiteral, discord.ui.Button[Any]]:
         """Sets the buttons of the paginator."""
 
+        # remove the finish button if auto_finish is True
+        if self.auto_finish:
+            buttons["FINISH"] = None
 
         res: Dict[ButtonKeysLiteral, discord.ui.Button[Any]] = {}
         valid_keys: Tuple[str, ...] = tuple(DEFAULT_BUTTONS.keys())
@@ -534,6 +547,7 @@ class ModalPaginator(discord.ui.View):
         This does the following:
 
         #. Checks if all modals are instances of :class:`discord.ui.Modal`.
+        #. Checks whether ``auto_finish`` is ``True`` and if so, checks if each modal is required.
         #. Sorts the modals by required if ``sort_modals`` is ``True``.
         #. Sets the :attr:`ModalPaginator.current_modal` to the first modal in the list.
         #. Handles the button states.
@@ -557,6 +571,12 @@ class ModalPaginator(discord.ui.View):
             # and maybe faster than doing this always?
             if not isinstance(modal, PaginatorModal):  # pyright: ignore [reportUnnecessaryIsInstance]
                 modal = PaginatorModal._to_self(self, modal)  # pyright: ignore [reportPrivateUsage]
+
+            if self.auto_finish and not modal.required:
+                raise ValueError(
+                    f"Modal at index {idx} is not required but auto_finish is True. "
+                    "All modals must be required if auto_finish is True."
+                )
 
             modals.append(modal)
 
@@ -704,6 +724,11 @@ class ModalPaginator(discord.ui.View):
         self._current_modal = self.get_modal()
         self._handle_button_states()
         await interaction.response.edit_message(view=self, content=self.page_string)
+
+        if self.auto_finish and all(m.is_finished() for m in self._modals if m.required):
+            self.stop()
+            await self.on_finish(interaction)
+            return
 
     async def disable_all_buttons(self, interaction: discord.Interaction[Any]) -> None:
         """Disables all buttons.
