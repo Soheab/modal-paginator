@@ -62,6 +62,8 @@ class TextInputPaginator(ModalPaginator):
     BUTTONS = {
         # remove cancel button
         "CANCEL": None,
+        # remove the next button
+        "NEXT": None,
         # change open button's label to "Open Modal" (default is "Open")
         "OPEN": CustomButton(label="Open Modal"),
     }
