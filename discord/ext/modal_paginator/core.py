@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Coroutine,
     Dict,
+    List,
     Optional,
     Sequence,
     Literal,
@@ -358,10 +359,66 @@ class ModalPaginator(discord.ui.View):
             buttons or DEFAULT_BUTTONS.copy()
         )
 
+    @classmethod
+    def from_text_inputs(
+        cls,
+        *inputs: discord.ui.TextInput[Any],
+        author_id: Optional[int] = None,
+        auto_finish: bool = False,
+        check: Optional[PaginatorCallable[Self, bool]] = None,
+        finish_callback: Optional[PaginatorCallable[Self, Any]] = None,
+        timeout: Optional[Union[int, float]] = None,
+        can_go_back: bool = True,
+        disable_after: bool = True,
+        sort_modals: bool = True,
+        buttons: Optional[CustomButtons] = None,
+        modal_title: str = "Enter your input",
+    ) -> ModalPaginator:
+        """A shortcut method to create a :class:`ModalPaginator` with a list of text inputs.
+
+        Parameters
+        -----------
+        *inputs: :class:`discord.ui.TextInput`
+            The text inputs to add to the modals.
+
+
+        Other parameters are the same as :class:`ModalPaginator`.
+
+        Returns
+        --------
+        :class:`ModalPaginator`
+            The constructed paginator with the modals.
+        """
+        modals: List[PaginatorModal] = []
+        for text_inputs in discord.utils.as_chunks(inputs, 5):
+            modal = PaginatorModal(title=modal_title, *text_inputs)
+            modals.append(modal)
+
+        return cls(
+            modals=modals,
+            author_id=author_id,
+            auto_finish=auto_finish,
+            check=check,
+            finish_callback=finish_callback,
+            timeout=timeout,
+            can_go_back=can_go_back,
+            disable_after=disable_after,
+            sort_modals=sort_modals,
+            buttons=buttons,
+        )
+
     @property
     def modals(self) -> list[PaginatorModal]:
         """List[:class:`PaginatorModal`]: The modals in the paginator."""
         return self._modals
+
+    @property
+    def text_inputs(self) -> list[discord.ui.TextInput[PaginatorModal]]:
+        """List[:class:`discord.ui.TextInput`]: The text inputs in the paginator.
+
+        This basically gets all TextInput's from the modal's :attr:`~discord.ui.Modal.children`.
+        """
+        return [inp for modal in self.modals for inp in modal.children if isinstance(inp, discord.ui.TextInput)]
 
     @property
     def current_modal(self) -> Optional[PaginatorModal]:
