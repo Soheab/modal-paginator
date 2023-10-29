@@ -372,7 +372,8 @@ class ModalPaginator(discord.ui.View):
         disable_after: bool = True,
         sort_modals: bool = True,
         buttons: Optional[CustomButtons] = None,
-        modal_title: str = "Enter your input",
+        titles: Union[str, Sequence[str]] = discord.utils.MISSING,
+        default_title: str = "Enter your input",
     ) -> ModalPaginator:
         """A shortcut method to create a :class:`ModalPaginator` with a list of text inputs.
 
@@ -380,6 +381,53 @@ class ModalPaginator(discord.ui.View):
         -----------
         *inputs: :class:`discord.ui.TextInput`
             The text inputs to add to the modals.
+        default_title: :class:`str`
+            The default title of the modals.
+            This is used as the title of the modals if ``modal_titles`` is
+            not given or is less than the amount of modals required.
+
+            Defaults to "Enter your input".
+        titles: Union[:class:`str`, Sequence[:class:`str`]]
+            The title(s) of the modals.
+            This can be a single string which will be used for all modals or
+            a tuple of strings in the same order as the text inputs per 5.
+
+            Defaults to ``default_title`` for all modals if not given.
+
+            Example:
+
+            .. code-block:: python
+                :linenos:
+
+                # All modals with the ``default_modal_title`` title
+                paginator = ModalPaginator.from_text_inputs(
+                    ..., # text inputs
+                    # other parameters
+                )
+                # All modals with the same title "Waiting for input"
+                paginator = ModalPaginator.from_text_inputs(
+                    ..., # text inputs
+                    modal_titles="Waiting for input",
+                    # other parameters
+                )
+                # First modal with title "Personal questions" and second modal with title "Hobbies questions"
+                # and the others modals with the ``default_modal_title`` title
+                paginator = ModalPaginator.from_text_inputs(
+                    *[
+                        # text inputs for first modal
+                        text_input1, text_input2, text_input3, text_input4, text_input5,
+                        # text inputs for second modal
+                        text_input6, text_input7, text_input8, text_input9, text_input10,
+                    ],
+                    modal_titles=("Personal questions", "Hobbies questions"),
+                    # other parameters
+                )
+                # Changing the default title
+                paginator = ModalPaginator.from_text_inputs(
+                    ..., # text inputs
+                    default_modal_title="Please answer the following questions",
+                    # other parameters
+                )
 
 
         Other parameters are the same as :class:`ModalPaginator`.
@@ -389,9 +437,22 @@ class ModalPaginator(discord.ui.View):
         :class:`ModalPaginator`
             The constructed paginator with the modals.
         """
+
+        def get_title(idx: int) -> str:
+            if titles is discord.utils.MISSING:
+                return default_title
+
+            if isinstance(titles, str):
+                return titles
+
+            try:
+                return titles[idx]
+            except IndexError:
+                return default_title
+
         modals: List[PaginatorModal] = []
-        for text_inputs in discord.utils.as_chunks(inputs, 5):
-            modal = PaginatorModal(*text_inputs, title=modal_title, required=True)
+        for idx, text_inputs in enumerate(discord.utils.as_chunks(inputs, 5)):
+            modal = PaginatorModal(*text_inputs, title=get_title(idx), required=True)
             modals.append(modal)
 
         return cls(
