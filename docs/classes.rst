@@ -7,7 +7,7 @@ ModalPaginator
     :members:
     :undoc-members:
     :show-inheritance:
-    :exclude-members: cancel_button, next_page, previous_page                                                                                                                                                                                                                                                                                                                                                                                                                 , stop_button, finish_button
+    :exclude-members: cancel_button, next_page, previous_page, stop_button, finish_button, open_button
 
 PaginatorModal
 ===============
