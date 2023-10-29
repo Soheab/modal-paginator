@@ -248,6 +248,8 @@ class ModalPaginator(discord.ui.View):
 
         #. Remove the "Finish" button.
         #. Call :meth:`ModalPaginator.on_finish` when all required modals are filled in.
+
+        .. versionadded:: 1.1
     check: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], :class:`bool`]]
         A check that is run when the paginator is interacted with (``interaction_check``). Defaults to ``None``.
     finish_callback: Optional[Callable[[:class:`ModalPaginator`, :class:`discord.Interaction`], Coroutine[Any, Any, Any]]]
@@ -432,6 +434,8 @@ class ModalPaginator(discord.ui.View):
 
         Other parameters are the same as :class:`ModalPaginator`.
 
+        .. versionadded:: 1.1
+
         Returns
         --------
         :class:`ModalPaginator`
@@ -478,6 +482,8 @@ class ModalPaginator(discord.ui.View):
         """List[:class:`discord.ui.TextInput`]: The text inputs in the paginator.
 
         This basically gets all TextInput's from the modal's :attr:`~discord.ui.Modal.children`.
+
+        .. versionadded:: 1.1
         """
         return [inp for modal in self.modals for inp in modal.children if isinstance(inp, discord.ui.TextInput)]
 
@@ -950,7 +956,7 @@ class ModalPaginator(discord.ui.View):
 
         This should be overriden in a subclass and is optional async.
 
-        .. versionadded:: 1.1.0
+        .. versionadded:: 1.1
 
         Returns
         --------
@@ -978,7 +984,7 @@ class ModalPaginator(discord.ui.View):
 
         This should be overriden in a subclass and is optional async.
 
-        .. versionadded:: 1.1.0
+        .. versionadded:: 1.1
 
         Returns
         --------
@@ -1006,7 +1012,7 @@ class ModalPaginator(discord.ui.View):
 
         This should be overriden in a subclass and is optional async.
 
-        .. versionadded:: 1.1.0
+        .. versionadded:: 1.1
 
         Returns
         --------
@@ -1034,7 +1040,7 @@ class ModalPaginator(discord.ui.View):
 
         This should be overriden in a subclass and is optional async.
 
-        .. versionadded:: 1.1.0
+        .. versionadded:: 1.1
 
         Returns
         --------
