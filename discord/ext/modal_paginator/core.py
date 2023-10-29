@@ -920,15 +920,140 @@ class ModalPaginator(discord.ui.View):
 
         return self.message  # type: ignore # shouldn't be None here...
 
+    async def __send_error_message(
+        self, interaction: discord.Interaction[Any], to_call: Callable[[], Dict[str, Any]]
+    ) -> None:
+        kwrgs = await discord.utils.maybe_coroutine(to_call)
+        ERROR_MESSAGE = (
+            "The error message must be a dictionary with the same keys as discord.InteractionResponse.send_message."
+        )
+        if not kwrgs or not isinstance(kwrgs, dict):  # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError(ERROR_MESSAGE)
+
+        try:
+            await interaction.response.send_message(**kwrgs)
+        except TypeError as e:
+            raise TypeError(ERROR_MESSAGE) from e
+
+    def get_previous_button_error_message(self) -> Dict[str, Any]:
+        """The error message to send when the user tries
+        to go back to a previous page but has to complete the current modal first.
+
+        You can override this to change the error message that is sent using a
+        dictonary with the same keys as :meth:`interaction.response.send_message <discord.InteractionResponse.send_message>`.
+
+        This is called in the "Previous" button.
+
+        The default implementation is the following:
+
+        ``{"content": "Please complete the current modal before going back.", "ephemeral": True, "delete_after": 5}``
+
+        This should be overriden in a subclass and is optional async.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        --------
+        :class:`dict`
+            The error message to send.
+        """
+        return {
+            "content": "Please complete the current modal before going back.",
+            "ephemeral": True,
+            "delete_after": 5,
+        }
+
+    def get_next_button_error_message(self) -> Dict[str, Any]:
+        """The error message to send when the user tries
+        to go to the next page but has to complete the current modal first.
+
+        You can override this to change the error message that is sent using a
+        dictonary with the same keys as :meth:`interaction.response.send_message <discord.InteractionResponse.send_message>`.
+
+        This is called in the "Next" button.
+
+        The default implementation is the following:
+
+        ``{"content": "Please complete the current modal before going to the next one.", "ephemeral": True, "delete_after": 5}``
+
+        This should be overriden in a subclass and is optional async.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        --------
+        :class:`dict`
+            The error message to send.
+        """
+        return {
+            "content": "Please complete the current modal before going to the next one.",
+            "ephemeral": True,
+            "delete_after": 5,
+        }
+
+    def get_open_button_error_message(self) -> Dict[str, Any]:
+        """The error message to send when the user tries
+        to open the modal but :attr:`ModalPaginator.current_modal` is ``None``.
+
+        You can override this to change the error message that is sent using a
+        dictonary with the same keys as :meth:`interaction.response.send_message <discord.InteractionResponse.send_message>`.
+
+        This is called in the "Open" button.
+
+        The default implementation is the following:
+
+        ``{"content": "Please complete the current modal before going to the next one.", "ephemeral": True, "delete_after": 5}``
+
+        This should be overriden in a subclass and is optional async.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        --------
+        :class:`dict`
+            The error message to send.
+        """
+        return {
+            "content": "Something went wrong... there is no current modal. Please report this to the developer.",
+            "ephemeral": True,
+            "delete_after": 5,
+        }
+
+    def get_finish_button_error_message(self) -> Dict[str, Any]:
+        """The error message to send when the user tries to press the "Finish" button
+        but not all required modals are finished.
+
+        You can override this to change the error message that is sent using a
+        dictonary with the same keys as :meth:`interaction.response.send_message <discord.InteractionResponse.send_message>`.
+
+        This is called in the "Finish" button.
+
+        The default implementation is the following:
+
+        ``{"content": "You shouldn't be able to press this button... please finish all required modals.", "ephemeral": True, "delete_after": 5}``
+
+        This should be overriden in a subclass and is optional async.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        --------
+        :class:`dict`
+            The error message to send.
+        """
+        return {
+            "content": "You shouldn't be able to press this button... please finish all required modals.",
+            "ephemeral": True,
+            "delete_after": 5,
+        }
+
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, row=1, custom_id="PREVIOUS")
     async def previous_page(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
         if callback := self._get_override_callback(button):
             return await callback(interaction)
 
         if self._is_locked():
-            await interaction.response.send_message(
-                "Please complete the current modal before going back.", ephemeral=True, delete_after=5
-            )
+            await self.__send_error_message(interaction, self.get_previous_button_error_message)
             return
 
         self.current_page -= 1
@@ -940,9 +1065,7 @@ class ModalPaginator(discord.ui.View):
             return await callback(interaction)
 
         if self._is_locked():
-            await interaction.response.send_message(
-                "Please complete the current modal before going to the next one.", ephemeral=True, delete_after=5
-            )
+            await self.__send_error_message(interaction, self.get_next_button_error_message)
             return
 
         self.current_page += 1
@@ -954,13 +1077,8 @@ class ModalPaginator(discord.ui.View):
             return await callback(interaction)
 
         self._current_modal = self.get_modal()
-        # for typing purposes, it shouldn't be None
         if not self.current_modal:
-            await interaction.response.send_message(
-                "Something went wrong... there is no current modal. Please report this to the developer.",
-                ephemeral=True,
-                delete_after=5,
-            )
+            await self.__send_error_message(interaction, self.get_open_button_error_message)
             return
 
         await interaction.response.send_modal(self.current_modal)
@@ -971,11 +1089,7 @@ class ModalPaginator(discord.ui.View):
             return await callback(interaction)
 
         if not all(m.is_finished() for m in self._modals if m.required):
-            await interaction.response.send_message(
-                "You shouldn't be able to press this button... please finish all required modals.",
-                ephemeral=True,
-                delete_after=5,
-            )
+            await self.__send_error_message(interaction, self.get_finish_button_error_message)
             return
 
         await self.__finish_impl(interaction)
