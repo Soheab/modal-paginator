@@ -702,10 +702,10 @@ class ModalPaginator(discord.ui.View):
 
     async def __cancel_impl(self, interaction: discord.Interaction[Any]) -> None:
         self.stop()
+        await self.on_cancel(interaction)
         if self._disable_after:
             await self.disable_all_buttons(interaction)
 
-        await self.on_cancel(interaction)
         return
 
     async def on_cancel(self, interaction: discord.Interaction[Any]) -> None:
@@ -723,12 +723,12 @@ class ModalPaginator(discord.ui.View):
 
     async def __finish_impl(self, interaction: discord.Interaction[Any]) -> None:
         self.stop()
+        await self.on_finish(interaction)
         if self._finish_callback:
             await discord.utils.maybe_coroutine(self._finish_callback, self, interaction)
         if self._disable_after:
             await self.disable_all_buttons(interaction)
 
-        await self.on_finish(interaction)
         return
 
     async def on_finish(self, interaction: discord.Interaction[Any]) -> None:
