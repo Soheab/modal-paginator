@@ -1,14 +1,14 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 
 from .custom_button import CustomButton
 
 if TYPE_CHECKING:
-    from .core import ModalPaginator, CustomButtons
+    from .core import ModalPaginator, ButtonKeysLiteral
 else:
     ModalPaginator = Any
+    ButtonKeysLiteral = str
 
 
 __all__ = (
@@ -21,10 +21,6 @@ __all__ = (
 
 
 class _OpenButton(CustomButton):
-    def __init__(self) -> None:
-        super().__init__(style=discord.ButtonStyle.gray, label="Open", row=0)
-        self._is_default: bool = True
-
     def on_optional_modal(self, button: discord.ui.Button[ModalPaginator]) -> None:
         """Called when the modal is optional.
 
@@ -42,7 +38,7 @@ class _OpenButton(CustomButton):
         button.style = discord.ButtonStyle.blurple
 
 
-OpenButton = _OpenButton()
+OpenButton = _OpenButton(style=discord.ButtonStyle.gray, label="Open", row=0)
 """Represents the default open button for :class:`.ModalPaginator`.
 
 Default implementation is, ``(style=discord.ButtonStyle.gray, label="Open", row=0)``.
@@ -54,33 +50,29 @@ NextButton = CustomButton(label="Next", style=discord.ButtonStyle.green, row=1)
 
 Default implementation is, ``(label="Next", style=discord.ButtonStyle.green, row=1)``.
 """
-NextButton._is_default = True  # pyright: ignore [reportPrivateUsage]
 
 PreviousButton = CustomButton(label="Previous", style=discord.ButtonStyle.green, row=1)
 """Represents the default previous button for :class:`.ModalPaginator`.
 
 Default implementation is, ``(label="Previous", style=discord.ButtonStyle.green, row=1)``.
 """
-PreviousButton._is_default = True  # pyright: ignore [reportPrivateUsage]
 
 CancelButton = CustomButton(label="Cancel", style=discord.ButtonStyle.red, row=2)
 """Represents the default cancel button for :class:`.ModalPaginator`.
 
 Default implementation is, ``(label="Cancel", style=discord.ButtonStyle.red, row=2)``.
 """
-CancelButton._is_default = True  # pyright: ignore [reportPrivateUsage]
 
 FinishButton = CustomButton(label="Finish", style=discord.ButtonStyle.green, row=2)
 """Represents the default finish button for :class:`.ModalPaginator`.
 
 Default implementation is, ``(label="Finish", style=discord.ButtonStyle.green, row=2)``.
 """
-FinishButton._is_default = True  # pyright: ignore [reportPrivateUsage]
 
-BUTTONS: CustomButtons = {
+BUTTONS: Dict[ButtonKeysLiteral, CustomButton] = {
     "OPEN": OpenButton,
     "NEXT": NextButton,
     "PREVIOUS": PreviousButton,
-    "CANCEL": CancelButton,
     "FINISH": FinishButton,
+    "CANCEL": CancelButton,
 }

@@ -331,9 +331,6 @@ class ModalPaginator(discord.ui.View):
         if modals is None:
             modals = []
 
-        if not can_go_back:
-            self.remove_item(self.previous_page)
-
         self._modals: list[PaginatorModal] = [
             PaginatorModal._to_self(self, modal) for modal in modals  # pyright: ignore [reportPrivateUsage]
         ]
@@ -350,16 +347,21 @@ class ModalPaginator(discord.ui.View):
         self._current_modal: Optional[PaginatorModal] = None
 
         self.__methods_map: Dict[str, discord.ui.Button[Self]] = {
+            "OPEN": self.open_button,
             "NEXT": self.next_page,
             "PREVIOUS": self.previous_page,
-            "OPEN": self.open_button,
             "FINISH": self.finish_button,
             "CANCEL": self.cancel_button,
         }
-        self._buttons_are_default: bool = buttons is None
-        self._buttons: Dict[ButtonKeysLiteral, discord.ui.Button[Any]] = self._set_buttons(
-            buttons or DEFAULT_BUTTONS.copy()
-        )
+
+        if buttons is not None:
+            for name in buttons:
+                if name not in DEFAULT_BUTTONS:
+                    raise InvalidButtonKey(name, tuple(DEFAULT_BUTTONS.keys()))
+        else:
+            buttons = {}
+
+        self._buttons: Dict[ButtonKeysLiteral, Optional[CustomButton]] = self._set_buttons(buttons)
 
     @classmethod
     def from_text_inputs(
@@ -526,35 +528,15 @@ class ModalPaginator(discord.ui.View):
         self.next_page.disabled = self.current_page >= self._max_pages or self._is_locked()
         self.previous_page.disabled = not self._can_go_back or self.current_page <= 0
         self.finish_button.disabled = not all(m.is_finished() for m in self._modals if m.required)
+        if modal:
+            for button in self._buttons.values():
+                if not button:
+                    continue
 
-        custom_open_button = self._get_custom_button(self.open_button)
-        custom_next_page_button = self._get_custom_button(self.next_page)
-        custom_previous_page_button = self._get_custom_button(self.previous_page)
-        custom_finish_button = self._get_custom_button(self.finish_button)
-        custom_cancel_button = self._get_custom_button(self.cancel_button)
-
-        if modal and modal.required and not modal.is_finished():
-            if custom_open_button:
-                custom_open_button.on_required_modal(self.open_button)
-            if custom_next_page_button:
-                custom_next_page_button.on_required_modal(self.next_page)
-            if custom_previous_page_button:
-                custom_previous_page_button.on_required_modal(self.previous_page)
-            if custom_finish_button:
-                custom_finish_button.on_required_modal(self.finish_button)
-            if custom_cancel_button:
-                custom_cancel_button.on_required_modal(self.cancel_button)
-        else:
-            if custom_open_button:
-                custom_open_button.on_optional_modal(self.open_button)
-            if custom_next_page_button:
-                custom_next_page_button.on_optional_modal(self.next_page)
-            if custom_previous_page_button:
-                custom_previous_page_button.on_optional_modal(self.previous_page)
-            if custom_finish_button:
-                custom_finish_button.on_optional_modal(self.finish_button)
-            if custom_cancel_button:
-                custom_cancel_button.on_optional_modal(self.cancel_button)
+                if modal.required and not modal.is_finished():
+                    button.on_required_modal(button)
+                else:
+                    button.on_optional_modal(button)
 
     def _is_locked(self) -> bool:
         """:class:`bool`: Whether the current modal is required but not filled in by the user.
@@ -566,100 +548,33 @@ class ModalPaginator(discord.ui.View):
 
         return self.current_modal.required and not self.current_modal.is_finished()
 
-    def _set_buttons(self, buttons: CustomButtons) -> Dict[ButtonKeysLiteral, discord.ui.Button[Any]]:
-        """Sets the buttons of the paginator."""
+    def _set_buttons(self, custom_buttons: CustomButtons) -> Dict[ButtonKeysLiteral, Optional[CustomButton]]:
+        res: Dict[ButtonKeysLiteral, Optional[CustomButton]] = {}
 
-        # remove the finish button if auto_finish is True
-        if self.auto_finish:
-            buttons["FINISH"] = None
+        for name, default_button_data in DEFAULT_BUTTONS.items():
+            default_button = self.__methods_map[name]
+            custom_button = custom_buttons.get(name, discord.utils.MISSING)
 
-        res: Dict[ButtonKeysLiteral, discord.ui.Button[Any]] = {}
-        valid_keys: Tuple[str, ...] = tuple(DEFAULT_BUTTONS.keys())
-
-        def set_attributes(original_button: discord.ui.Button[Any], custom_button: discord.ui.Button[Any]) -> None:
-            # since we store the original kwargs that were passed to the constructor
-            # we know exactly what the user wants to change
-            if isinstance(custom_button, CustomButton):
-                kwargs = custom_button._original_kwargs  # pyright: ignore [reportPrivateUsage]
-                style = kwargs["style"]
-                row = kwargs["row"]
-                label = kwargs["label"]
-                emoji = kwargs["emoji"]
-
-                if style is not discord.utils.MISSING and style != original_button.style:
-                    original_button.style = style
-                if row is not discord.utils.MISSING and row != original_button.row:
-                    original_button.row = row
-                if label is not discord.utils.MISSING and label != original_button.label:
-                    original_button.label = label
-                if emoji is not discord.utils.MISSING and emoji != original_button.emoji:
-                    original_button.emoji = emoji
-            else:
-                # we have to rely on the instance because we don't know what kwargs were passed to the constructor
-                if custom_button.style != original_button.style:
-                    original_button.style = custom_button.style
-                if custom_button.row and custom_button.row != original_button.row:
-                    original_button.row = custom_button.row
-
-                if custom_button.label != original_button.label:
-                    if custom_button.label is None and custom_button.emoji:
-                        original_button.label = custom_button.label
-
-                if custom_button.emoji and custom_button.emoji != original_button.emoji:
-                    original_button.emoji = custom_button.emoji
-
-        for key, custom_button in buttons.copy().items():
-            if (
-                isinstance(custom_button, CustomButton)
-                and custom_button._is_default  # pyright: ignore [reportPrivateUsage]
-            ):
-                continue
-
-            if key not in self.__methods_map:
-                raise InvalidButtonKey(key, valid_keys)
-
-            button = self.__methods_map[key]
-            res[key] = custom_button  # type: ignore
             if custom_button is None:
-                self.remove_item(button)
+                res[name] = None
+                self.remove_item(default_button)
                 continue
 
-            set_attributes(button, custom_button)
+            # fmt: off
+            res[name] = CustomButton._copy_attrs(  # pyright: ignore [reportPrivateUsage]
+                default_button,
+                custom_button if custom_button is not discord.utils.MISSING else default_button_data
+            )
+            # fmt: on
+
+        if self.auto_finish:
+            self.remove_item(self.__methods_map["FINISH"])
+            res["FINISH"] = None
+        if not self._can_go_back:
+            self.remove_item(self.__methods_map["PREVIOUS"])
+            res["PREVIOUS"] = None
 
         return res
-
-    def _get_custom_button(self, button: discord.ui.Button[Self]) -> Optional[CustomButton]:
-        """Gets the custom button from the paginator's buttons.
-
-        Parameters
-        -----------
-        button: :class:`discord.ui.Button`
-            The button to get the custom button of.
-        """
-        custom_id: str = button.custom_id  # pyright: ignore [reportGeneralTypeIssues] # custom_id shouldn't be None.
-        if (cs_button := self._buttons.get(custom_id)) and isinstance(cs_button, CustomButton):  # type: ignore
-            return cs_button
-
-        return None
-
-    def _get_override_callback(
-        self,
-        button: discord.ui.Button[Self],
-    ) -> Optional[Callable[[discord.Interaction[Any]], Coroutine[Any, Any, Any]]]:
-        """Gets the custom button's callback if ``override_callback`` is ``True``.
-
-        This is called in the button callbacks.
-
-        Parameters
-        -----------
-        button: :class:`discord.ui.Button`
-            The button to call the callback of.
-        """
-        if cs_button := self._get_custom_button(button):
-            if cs_button._override_callback:  # pyright: ignore [reportPrivateUsage]
-                return cs_button.callback
-
-        return None
 
     def validate_pages(self) -> None:
         """Validates all modals in the paginator. Basically checks if all modals are
@@ -1055,9 +970,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, row=1, custom_id="PREVIOUS")
     async def previous_page(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
-        if callback := self._get_override_callback(button):
-            return await callback(interaction)
-
         if self._is_locked():
             await self.__send_error_message(interaction, self.get_previous_button_error_message)
             return
@@ -1067,9 +979,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple, row=1, custom_id="NEXT")
     async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
-        if callback := self._get_override_callback(button):
-            return await callback(interaction)
-
         if self._is_locked():
             await self.__send_error_message(interaction, self.get_next_button_error_message)
             return
@@ -1079,9 +988,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Open", row=0, custom_id="OPEN")
     async def open_button(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
-        if callback := self._get_override_callback(button):
-            return await callback(interaction)
-
         self._current_modal = self.get_modal()
         if not self.current_modal:
             await self.__send_error_message(interaction, self.get_open_button_error_message)
@@ -1091,9 +997,6 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Finish", style=discord.ButtonStyle.green, row=2, custom_id="FINISH")
     async def finish_button(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
-        if callback := self._get_override_callback(button):
-            return await callback(interaction)
-
         if not all(m.is_finished() for m in self._modals if m.required):
             await self.__send_error_message(interaction, self.get_finish_button_error_message)
             return
@@ -1102,7 +1005,4 @@ class ModalPaginator(discord.ui.View):
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, row=2, custom_id="CANCEL")
     async def cancel_button(self, interaction: discord.Interaction[Any], button: discord.ui.Button[Self]) -> None:
-        if callback := self._get_override_callback(button):
-            return await callback(interaction)
-
         await self.__cancel_impl(interaction)
