@@ -21,7 +21,7 @@ And read the source code for more information, it has docstrings and comments.
 
 Documentation
 -------------
-The documentation is available at https://discord-ext-modal-paginator.readthedocs.io/en/latest/.
+The documentation is available at https://discord-ext-modal-paginator.readthedocs.io/
 
 Contributing
 ------------
