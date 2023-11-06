@@ -291,6 +291,8 @@ class ModalPaginator(discord.ui.View):
     auto_finish: :class:`bool`
         Whether the paginator should automatically finish when all required modals are filled in. Defaults to ``False``.
 
+        .. versionadded:: 1.1
+
     Example
     --------
     .. code-block:: python
