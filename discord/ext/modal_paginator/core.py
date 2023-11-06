@@ -9,7 +9,6 @@ from typing import (
     Optional,
     Sequence,
     Literal,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -98,7 +97,7 @@ class PaginatorModal(discord.ui.Modal):
             title=modal.title,
             custom_id=modal.custom_id,
             timeout=modal.timeout or 180.0,
-            *modal._children,
+            *modal._children,  # pyright: ignore [reportGeneralTypeIssues]
         )
         inst._paginator = paginator
         return inst
@@ -289,6 +288,8 @@ class ModalPaginator(discord.ui.View):
     -----------
     author_id: Optional[:class:`int`]
         ID of the author that can interact with the paginator. Defaults to everyone can interact.
+    auto_finish: :class:`bool`
+        Whether the paginator should automatically finish when all required modals are filled in. Defaults to ``False``.
 
     Example
     --------
