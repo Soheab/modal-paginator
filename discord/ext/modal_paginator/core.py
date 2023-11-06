@@ -406,7 +406,7 @@ class ModalPaginator(discord.ui.View):
             .. code-block:: python
                 :linenos:
 
-                # All modals with the ``default_modal_title`` title
+                # All modals with the ``default_title`` title
                 paginator = ModalPaginator.from_text_inputs(
                     ..., # text inputs
                     # other parameters
@@ -418,7 +418,7 @@ class ModalPaginator(discord.ui.View):
                     # other parameters
                 )
                 # First modal with title "Personal questions" and second modal with title "Hobbies questions"
-                # and the others modals with the ``default_modal_title`` title
+                # and the others modals with the ``default_title`` title
                 paginator = ModalPaginator.from_text_inputs(
                     *[
                         # text inputs for first modal
@@ -432,7 +432,7 @@ class ModalPaginator(discord.ui.View):
                 # Changing the default title
                 paginator = ModalPaginator.from_text_inputs(
                     ..., # text inputs
-                    default_modal_title="Please answer the following questions",
+                    default_title="Please answer the following questions",
                     # other parameters
                 )
 
