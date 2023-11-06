@@ -73,9 +73,31 @@ intersphinx_mapping = {
     "discord": ("https://discordpy.readthedocs.io/en/latest/", None),
 }
 
+# fmt: off
+# what this basically does it shorten the commit hash to 7 characters...
+# i couldn't find a better way to do this. please help me if you know how to do this better.
+class FormatCommitHash:  # noqa
+    def __new__(cls):# -> Any:
+        # fixes the following error:
+        # _pickle.PicklingError: Can't pickle <class 'FormatCommitHash'>: attribute lookup FormatCommitHash on builtins failed
+        # please don't ask me why this works, i don't know either. Found it here: https://stackoverflow.com/a/17329487
+        # yes, i moved it here so it looks better.
+        import __main__
+        setattr(__main__, cls.__name__, cls)
+        cls.__module__ = "__main__" 
+        return super().__new__(cls)
+
+    def __mod__(self, spec: str) -> str:
+        return f"({spec[:7]})"
+
+# fmt: on
+
 extlinks = {
-    "apidocs": ("https://some-random-api.com/docs/%s", None),
+    "commit": ("https://github.com/Soheab/modal-paginator/commit/%s", FormatCommitHash()),
 }
+
+
+del FormatCommitHash
 
 
 viewcode_follow_imported_members = True
@@ -91,6 +113,7 @@ napoleon_use_param = True
 autodoc_typehints = "none"
 autodoc_class_signature = "separated"
 typehints_use_signature = False
+extlinks_detect_hardcoded_links = True
 
 nitpicky = True
 nitpick_ignore = [
