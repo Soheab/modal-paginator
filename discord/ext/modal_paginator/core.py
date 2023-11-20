@@ -390,7 +390,7 @@ class ModalPaginator(discord.ui.View):
             The text inputs to add to the modals.
         default_title: :class:`str`
             The default title of the modals.
-            This is used as the title of the modals if ``modal_titles`` is
+            This is used as the title of the modals if ``titles`` is
             not given or is less than the amount of modals required.
 
             Defaults to "Enter your input".
@@ -414,7 +414,7 @@ class ModalPaginator(discord.ui.View):
                 # All modals with the same title "Waiting for input"
                 paginator = ModalPaginator.from_text_inputs(
                     ..., # text inputs
-                    modal_titles="Waiting for input",
+                    titles="Waiting for input",
                     # other parameters
                 )
                 # First modal with title "Personal questions" and second modal with title "Hobbies questions"
@@ -426,7 +426,7 @@ class ModalPaginator(discord.ui.View):
                         # text inputs for second modal
                         text_input6, text_input7, text_input8, text_input9, text_input10,
                     ],
-                    modal_titles=("Personal questions", "Hobbies questions"),
+                    titles=("Personal questions", "Hobbies questions"),
                     # other parameters
                 )
                 # Changing the default title
