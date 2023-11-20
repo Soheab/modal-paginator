@@ -105,7 +105,7 @@ async def test(ctx: commands.Context[commands.Bot]):
         *text_inputs,  # pyright: ignore [reportUnknownArgumentType]
         author_id=ctx.author.id,
         # passing the class attributes we defined earlier
-        modal_title=TextInputPaginator.MODAL_TITLE,
+        default_title=TextInputPaginator.MODAL_TITLE,
         buttons=TextInputPaginator.BUTTONS,  # pyright: ignore [reportGeneralTypeIssues]
         # remove the previous button
         can_go_back=False,
