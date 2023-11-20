@@ -1,6 +1,6 @@
 from .core import ModalPaginator as ModalPaginator, PaginatorModal as PaginatorModal
 from .custom_button import CustomButton as CustomButton
 
-__version__ = "1.2.0a"
+__version__ = "1.1.1"
 __author__ = "Soheab"
 __license__ = "MPL-2.0"

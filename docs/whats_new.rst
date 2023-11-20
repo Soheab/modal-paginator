@@ -8,6 +8,15 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v1.1.1
+------
+
+Miscellaneous
+~~~~~~~~~~~~~~
+
+- :commit:`92d852a51cc38e0e2135d1521dd80b7c7d1e434c` Bumped the minimum discord.py version required. From `2.0.0` to `2.2.0`.
+
+
 v1.1.0
 -------
 
