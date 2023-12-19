@@ -83,6 +83,16 @@ class PaginatorModal(discord.ui.Modal):
             self.add_item(inp)
 
     @property
+    def text_inputs(self) -> List[discord.ui.TextInput[Self]]:
+        """List[:class:`discord.ui.TextInput`]: The text inputs in the modal.
+
+        This basically gets all :class:`discord.ui.TextInput`'s from the modal's :attr:`~discord.ui.Modal.children`.
+
+        .. versionadded:: 1.2
+        """
+        return [inp for inp in self.children if isinstance(inp, discord.ui.TextInput)]
+
+    @property
     def paginator(self) -> ModalPaginator:
         """:class:`ModalPaginator`: The paginator of the modal."""
         return self._paginator
@@ -483,14 +493,17 @@ class ModalPaginator(discord.ui.View):
         return self._modals
 
     @property
-    def text_inputs(self) -> list[discord.ui.TextInput[PaginatorModal]]:
+    def text_inputs(self) -> List[discord.ui.TextInput[PaginatorModal]]:
         """List[:class:`discord.ui.TextInput`]: The text inputs in the paginator.
 
-        This basically gets all TextInput's from the modal's :attr:`~discord.ui.Modal.children`.
+        This basically returns a list of all :class:`PaginatorModal.text_inputs` from all :attr:`ModalPaginator.modals`
+        together in one list.
 
         .. versionadded:: 1.1
+        .. versionchanged:: 1.2
+            :class:`PaginatorModal.text_inputs` is used over :class:`discord.ui.Modal.children`.
         """
-        return [inp for modal in self.modals for inp in modal.children if isinstance(inp, discord.ui.TextInput)]
+        return [inp for modal in self.modals for inp in modal.text_inputs]
 
     @property
     def current_modal(self) -> Optional[PaginatorModal]:
