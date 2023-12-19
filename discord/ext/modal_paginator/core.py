@@ -379,7 +379,7 @@ class ModalPaginator(discord.ui.View):
     @classmethod
     def from_text_inputs(
         cls,
-        *inputs: discord.ui.TextInput[Any],
+        *inputs: Union[discord.ui.TextInput[Any], str],
         author_id: Optional[int] = None,
         auto_finish: bool = False,
         check: Optional[PaginatorCallable[Self, bool]] = None,
@@ -396,8 +396,14 @@ class ModalPaginator(discord.ui.View):
 
         Parameters
         -----------
-        *inputs: :class:`discord.ui.TextInput`
-            The text inputs to add to the modals.
+        *inputs: Union[:class:`discord.ui.TextInput`, :class:`str`]
+            The text inputs to add to the modals. This can be a :class:`discord.ui.TextInput`
+            or a string which will be converted to a :class:`discord.ui.TextInput` with the
+            string as the label.
+
+            .. versionchanged:: 1.2
+                This can now also take a string to convert to a :class:`discord.ui.TextInput`.
+
         default_title: :class:`str`
             The default title of the modals.
             This is used as the title of the modals if ``titles`` is
@@ -471,7 +477,11 @@ class ModalPaginator(discord.ui.View):
 
         modals: List[PaginatorModal] = []
         for idx, text_inputs in enumerate(discord.utils.as_chunks(inputs, 5)):
-            modal = PaginatorModal(*text_inputs, title=get_title(idx), required=True)
+            inputs: List[discord.ui.TextInput[Any]] = [
+                (inp if isinstance(inp, discord.ui.TextInput) else discord.ui.TextInput(label=inp))
+                for inp in text_inputs
+            ]
+            modal = PaginatorModal(*inputs, title=get_title(idx), required=True)
             modals.append(modal)
 
         return cls(
