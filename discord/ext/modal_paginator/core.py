@@ -477,11 +477,11 @@ class ModalPaginator(discord.ui.View):
 
         modals: List[PaginatorModal] = []
         for idx, text_inputs in enumerate(discord.utils.as_chunks(inputs, 5)):
-            inputs: List[discord.ui.TextInput[Any]] = [
+            constructed_inputs: List[discord.ui.TextInput[Any]] = [
                 (inp if isinstance(inp, discord.ui.TextInput) else discord.ui.TextInput(label=inp))
                 for inp in text_inputs
             ]
-            modal = PaginatorModal(*inputs, title=get_title(idx), required=True)
+            modal = PaginatorModal(*constructed_inputs, title=get_title(idx), required=True)
             modals.append(modal)
 
         return cls(
