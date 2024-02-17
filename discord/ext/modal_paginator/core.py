@@ -863,7 +863,7 @@ class ModalPaginator(discord.ui.View):
         return_message: bool = False,
         **kwargs: Any,
     ) -> Optional[MessageT]:
-        """Sends the paginator.
+        r"""Sends the paginator.
 
         This calls :meth:`ModalPaginator.validate_pages` before sending the paginator.
         Make sure to call said method if subclassing and overriding this method.
@@ -905,7 +905,6 @@ class ModalPaginator(discord.ui.View):
 
             :meth:`discord.Interaction.original_response` is used if ``obj`` is an :class:`discord.Interaction` and the
             interaction was not responded to. Set ``return_message`` to disable this.
-
         """  # noqa: E501
         self.validate_pages()
         base_kwargs: Dict[str, Any] = {"view": self}
