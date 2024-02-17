@@ -11,6 +11,7 @@ from typing import (
     Literal,
     TypeVar,
     Union,
+    overload,
 )
 
 import discord
@@ -824,25 +825,78 @@ class ModalPaginator(discord.ui.View):
         elif self.message:
             await self.message.edit(view=self)
 
+    @overload
     async def send(
         self,
         obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
+        *,
+        add_page_string: bool = ...,
+        return_message: Literal[True] = ...,
         **kwargs: Any,
-    ) -> MessageT:
+    ) -> MessageT: ...
+
+    @overload
+    async def send(
+        self,
+        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
+        *,
+        add_page_string: bool = ...,
+        return_message: Literal[False] = ...,
+        **kwargs: Any,
+    ) -> Optional[MessageT]: ...
+
+    @overload
+    async def send(
+        self,
+        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
+        *,
+        add_page_string: bool = ...,
+        return_message: bool = ...,
+        **kwargs: Any,
+    ) -> Optional[MessageT]: ...
+
+    async def send(
+        self,
+        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
+        *,
+        add_page_string: bool = True,
+        return_message: bool = False,
+        **kwargs: Any,
+    ) -> Optional[MessageT]:
         """Sends the paginator.
 
         This calls :meth:`ModalPaginator.validate_pages` before sending the paginator.
         Make sure to call said method if subclassing and overriding this method.
+
+        .. versionchanged:: 1.2
+            This now can return ``None`` if ``return_message`` is ``False``.
 
         Parameters
         -----------
         obj: Union[:class:`~discord.abc.Messageable`, :class:`~discord.Interaction`, :class:`~discord.ext.commands.Context`]
             The desination to send the paginator to. if :class:`~discord.Interaction` is passed, the paginator will be sent
             as a response to the interaction or as a followup if the interaction is already responded to.
-        ephemeral: :class:`bool`
-            Whether the paginator should be ephemeral. Defaults to ``False``. This is only used if ``obj`` is an interaction.
+        add_page_string: :class:`bool`
+            Whether to add the :attr:`ModalPaginator.page_string` to the message/response's content. Defaults to ``True``.
+            Will be appended to the content if ``content`` is given in ``kwargs`` as ``{page_string}\n\n{content}``.
+
+            You can set this to ``False`` if you want to add the page string anywhere else in the content yourself
+            or if you don't want to add it at all.
+
+            .. versionadded:: 1.2
+        return_message: :class:`bool`
+            Whether to return the message that was sent. Defaults to ``False``.
+
+            This is useful if you don't want to fetch the interaction's message after sending the paginator or other reasons.
+
+            .. versionadded:: 1.2
         **kwargs: Any
             Additional keyword arguments to the destination's sending method.
+
+            Beware that the kwargs may differ depending on the destination. E.g, interaction followup vs message sending.
+
+            .. versionchanged:: 1.2
+                These are now passed to the destination's sending method. A bug was fixed where the kwargs were not passed.
 
         Returns
         --------
@@ -850,22 +904,33 @@ class ModalPaginator(discord.ui.View):
             The message that was sent.
 
             :meth:`discord.Interaction.original_response` is used if ``obj`` is an :class:`discord.Interaction` and the
-            interaction was not responded to. Subclass to change this behaviour.
+            interaction was not responded to. Set ``return_message`` to disable this.
 
         """  # noqa: E501
         self.validate_pages()
+        base_kwargs: Dict[str, Any] = {"view": self}
+        if kwargs:
+            content = kwargs.get("content")
+            if add_page_string:
+                if content:
+                    kwargs["content"] = f"{self.page_string}\n\n{content}"
+                else:
+                    kwargs["content"] = self.page_string
+
+            base_kwargs.update(kwargs)
 
         if isinstance(obj, discord.Interaction):
             self.interaction = obj
             if not obj.response.is_done():
-                await obj.response.send_message(self.page_string, view=self)
-                self._message = await obj.original_response()
+                self._message = await obj.response.send_message(**base_kwargs)
+                if self._message and return_message:
+                    self._message = await obj.original_response()
             else:
-                self._message = await obj.followup.send(self.page_string, view=self, wait=True)
+                self._message = await obj.followup.send(**base_kwargs, wait=True)
         else:
-            self._message = await obj.send(self.page_string, view=self)
+            self._message = await obj.send(**base_kwargs)
 
-        return self.message  # type: ignore # shouldn't be None here...
+        return self.message
 
     async def __send_error_message(
         self, interaction: discord.Interaction[Any], to_call: Callable[[], Dict[str, Any]]
