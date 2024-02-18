@@ -512,7 +512,7 @@ class ModalPaginator(discord.ui.View):
 
         .. versionadded:: 1.1
         .. versionchanged:: 1.2
-            :class:`PaginatorModal.text_inputs` is used over :class:`discord.ui.Modal.children`.
+            :class:`PaginatorModal.text_inputs` is used over :attr:`discord.ui.Modal.children`.
         """
         return [inp for modal in self.modals for inp in modal.text_inputs]
 
