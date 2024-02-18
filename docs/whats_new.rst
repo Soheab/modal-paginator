@@ -8,6 +8,37 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v1.2.0
+-------
+
+Features
+~~~~~~~~
+
+- :commit:`8c329efcc3fc4ea69fae03d0e31e39f48b3e5280` Added two new kwargs to :meth:`.ModalPaginator.send` :
+
+  * ``add_page_string``
+
+  * ``return_message``
+
+  See the kwarg's docstring for more information.
+
+- :commit:`4b959be5a52ec7c763e300a2a631f180fc9509c1` :meth:`.ModalPaginator.from_text_inputs` can now take a list of :class:`str`
+  (or mixed with :class:`.discord.ui.TextInput`) instead of a list of :class:`.discord.ui.TextInput`. This is useful
+  if you don't want to construct a :class:`.discord.ui.TextInput`.
+
+- :commit:`f7a164f7503e36e5c1aee0480d0d9630478104ba` Added a new property to :class:`.PaginatorModal`:
+
+  * :attr:`.PaginatorModal.text_inputs`
+
+  This is also used in :meth:`.ModalPaginator.text_inputs`.
+
+  See the property's docstring for more information.
+
+Bug Fixes
+~~~~~~~~~
+
+- :commit:`8c329efcc3fc4ea69fae03d0e31e39f48b3e5280` ``**kwargs`` in :meth:`.ModalPaginator.send` are now properly passed to the destination.
+
 v1.1.1
 ------
 

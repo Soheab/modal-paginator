@@ -46,7 +46,7 @@ packages = ["discord", "discord.ext", "discord.ext.modal_paginator"]
 
 [project.urls]
 homepage = "https://github.com/Soheab/modal-paginator"
-# documentation = "...""
+documentation = "https://discord-ext-modal-paginator.readthedocs.io/"
 repository = "https://github.com/Soheab/modal-paginator"
 
 [tool.setuptools.dynamic]
