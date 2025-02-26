@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Coroutine,
     Dict,
+    Generic,
     List,
     Optional,
     Sequence,
@@ -16,11 +17,11 @@ from typing import (
 
 import discord
 from discord.ext import commands as _commands
+
 from .default_buttons import BUTTONS as DEFAULT_BUTTONS
-
-
 from .errors import InvalidButtonKey, NoModals, NotAModal
 from .custom_button import CustomButton
+from . import utils
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -36,6 +37,17 @@ ReturnType = TypeVar("ReturnType")
 PaginatorCallable = Callable[[ClsT, discord.Interaction[Any]], Union[Coroutine[Any, Any, ReturnType], ReturnType]]
 ButtonKeysLiteral = Literal["NEXT", "PREVIOUS", "OPEN", "FINISH", "CANCEL"]
 CustomButtons = Dict[ButtonKeysLiteral, Optional[discord.ui.Button[Any]]]
+
+
+if utils.IS_DPY2_5:
+    from discord import (
+        InteractionCallbackResponse as _InteractionCallbackResponse,  # pyright: ignore[reportAssignmentType]
+    )
+else:
+    ClienT = TypeVar("ClienT")
+
+    class _InteractionCallbackResponse(Generic[ClienT]):
+        pass
 
 
 __all__ = (
@@ -108,7 +120,7 @@ class PaginatorModal(discord.ui.Modal):
             title=modal.title,
             custom_id=modal.custom_id,
             timeout=modal.timeout or 180.0,
-            *modal._children,  # pyright: ignore [reportGeneralTypeIssues]
+            *modal._children,  # pyright: ignore [reportArgumentType]
         )
         inst._paginator = paginator
         return inst
@@ -828,32 +840,26 @@ class ModalPaginator(discord.ui.View):
     @overload
     async def send(
         self,
-        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
-        *,
-        add_page_string: bool = ...,
-        return_message: Literal[True] = ...,
-        **kwargs: Any,
-    ) -> MessageT: ...
-
-    @overload
-    async def send(
-        self,
-        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
-        *,
-        add_page_string: bool = ...,
-        return_message: Literal[False] = ...,
-        **kwargs: Any,
-    ) -> Optional[MessageT]: ...
-
-    @overload
-    async def send(
-        self,
-        obj: Union[discord.abc.Messageable, discord.Interaction[Any], _commands.Context[Any]],
+        obj: discord.abc.Messageable,
         *,
         add_page_string: bool = ...,
         return_message: bool = ...,
         **kwargs: Any,
-    ) -> Optional[MessageT]: ...
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        obj: discord.Interaction[Any],
+        *,
+        add_page_string: bool = ...,
+        return_message: bool = ...,
+        **kwargs: Any,
+    ) -> Union[
+        discord.InteractionMessage,
+        discord.WebhookMessage,
+        _InteractionCallbackResponse[Any],
+    ]: ...
 
     async def send(
         self,
@@ -862,7 +868,12 @@ class ModalPaginator(discord.ui.View):
         add_page_string: bool = True,
         return_message: bool = False,
         **kwargs: Any,
-    ) -> Optional[MessageT]:
+    ) -> Union[
+        discord.Message,
+        discord.WebhookMessage,
+        discord.InteractionMessage,
+        _InteractionCallbackResponse[Any],
+    ]:
         r"""Sends the paginator.
 
         This calls :meth:`ModalPaginator.validate_pages` before sending the paginator.
@@ -870,6 +881,8 @@ class ModalPaginator(discord.ui.View):
 
         .. versionchanged:: 1.2
             This now can return ``None`` if ``return_message`` is ``False``.
+        .. versionchanged:: 1.2.1
+            This now returns the message/callback that was sent.
 
         Parameters
         -----------
@@ -890,6 +903,8 @@ class ModalPaginator(discord.ui.View):
             This is useful if you don't want to fetch the interaction's message after sending the paginator or other reasons.
 
             .. versionadded:: 1.2
+            .. deprecated:: 1.2.1
+                This is deprecated as the method now returns the message/callback that was sent.
         **kwargs: Any
             Additional keyword arguments to the destination's sending method.
 
@@ -918,18 +933,37 @@ class ModalPaginator(discord.ui.View):
 
             base_kwargs.update(kwargs)
 
-        if isinstance(obj, discord.Interaction):
-            self.interaction = obj
-            if not obj.response.is_done():
-                self._message = await obj.response.send_message(**base_kwargs)
-                if self._message and return_message:
-                    self._message = await obj.original_response()
-            else:
-                self._message = await obj.followup.send(**base_kwargs, wait=True)
-        else:
-            self._message = await obj.send(**base_kwargs)
+        if not isinstance(
+            obj, (discord.Interaction, discord.abc.Messageable)
+        ):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                "Expected an instance of discord.Interaction or discord.abc.Messageable (e.g. discord.TextChannel or commands.Context)"
+            )
 
-        return self.message
+        if not isinstance(obj, discord.Interaction):
+            self._message = await obj.send(**base_kwargs)
+            return self._message
+
+        if obj.response.is_done():
+            base_kwargs.pop("wait", None)
+            self._message = await obj.followup.send(wait=True, **base_kwargs)
+            return self._message
+
+        response = await obj.response.send_message(**base_kwargs)
+        if not utils.IS_DPY2_5 or utils.IS_DPY_2_5_WITH_INTERACTIONEDITFIXED:
+            self._message = await obj.original_response()
+            return self._message
+
+        if (
+            response
+            and isinstance(response, _InteractionCallbackResponse)
+            and isinstance(response.resource, discord.InteractionMessage)
+        ):
+            self._message = response.resource
+
+            return response
+
+        return self._message  # pyright: ignore[reportReturnType]
 
     async def __send_error_message(
         self, interaction: discord.Interaction[Any], to_call: Callable[[], Dict[str, Any]]
