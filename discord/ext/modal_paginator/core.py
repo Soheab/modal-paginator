@@ -950,7 +950,7 @@ class ModalPaginator(discord.ui.View):
             return self._message
 
         response = await obj.response.send_message(**base_kwargs)
-        if not utils.IS_DPY2_5 or utils.IS_DPY_2_5_WITH_INTERACTIONEDITFIXED:
+        if not utils.IS_DPY2_5 or not utils.IS_DPY_2_5_WITH_INTERACTIONEDITFIXED:
             self._message = await obj.original_response()
             return self._message
 
