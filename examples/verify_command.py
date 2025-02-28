@@ -109,10 +109,10 @@ class VerifyModal(ModalPaginator):
         # create a list of answers
         # default format: **Modal Title**\nQuestion: Answer\nQuestion: Answer\n... etc
         answers: list[str] = []
-        for modal in self.modals:
+        for modal, fields in self:
             prefix = f"**{modal.title}**\n"
             field: discord.ui.TextInput[Any]
-            for field in modal.children:  # type: ignore
+            for field in fields:
                 prefix += f"{field.label}: {field.value}\n"
 
             answers.append(prefix)

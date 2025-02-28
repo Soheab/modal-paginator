@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Coroutine,
     Dict,
+    Generator,
     Generic,
     List,
     Optional,
@@ -255,6 +256,25 @@ class PaginatorModal(discord.ui.Modal):
 class ModalPaginator(discord.ui.View):
     """A paginator for :class:`discord.ui.Modal`
 
+    .. container:: operations
+
+        .. describe:: iter(x)
+
+            Returns an iterator of (:class:`PaginatorModal`, List[:class:`TextInput`]) for each modal in the paginator.
+
+            .. versionadded:: 1.3
+
+            Example
+            --------
+
+            .. code-block:: python
+                :linenos:
+
+                for modal, text_inputs in paginator:
+                    print(modal.title)
+                    for text_input in text_inputs:
+                        print(text_input.label)
+
     Parameters
     -----------
     modals: Optional[Sequence[:class:`discord.ui.Modal`]]
@@ -388,6 +408,12 @@ class ModalPaginator(discord.ui.View):
             buttons = {}
 
         self._buttons: Dict[ButtonKeysLiteral, Optional[CustomButton]] = self._set_buttons(buttons)
+
+    def __iter__(
+        self,
+    ) -> Generator[tuple[PaginatorModal, List[discord.ui.TextInput[PaginatorModal]]], Any, None]:
+        for modal in self.modals:
+            yield modal, modal.text_inputs
 
     @classmethod
     def from_text_inputs(
