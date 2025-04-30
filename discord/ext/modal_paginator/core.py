@@ -498,7 +498,7 @@ class ModalPaginator(discord.ui.View):
 
             .. versionadded:: 1.3
         titles_step: :class:`int`
-            How much indexes should the modal increase per each modal created.
+            How much to increase the search index used on titles, if applicable. Defaults to ``1``.
 
             .. versionadded:: 1.3
 
@@ -514,7 +514,7 @@ class ModalPaginator(discord.ui.View):
         """
 
         if titles_steps < 0 or ((titles_steps > len(titles)) if not isinstance(titles, str) else False):
-            raise ValueError('titles_step must be between 0 and the length of the titles, if available')
+            raise ValueError('titles_step must be between 0 and the length of the titles ({len(titles)}), if available')
 
         if max_inputs_per_modal < 1 or max_inputs_per_modal > 5:
             raise ValueError('max_inputs_per_modal must be between 1 and 5, both included')
