@@ -430,6 +430,8 @@ class ModalPaginator(discord.ui.View):
         buttons: Optional[CustomButtons] = None,
         titles: Union[str, Sequence[str]] = discord.utils.MISSING,
         default_title: str = "Enter your input",
+        max_inputs_per_modal: int = 5,
+        titles_steps: int = 1,
     ) -> ModalPaginator:
         """A shortcut method to create a :class:`ModalPaginator` with a list of text inputs.
 
@@ -490,6 +492,15 @@ class ModalPaginator(discord.ui.View):
                     default_title="Please answer the following questions",
                     # other parameters
                 )
+        max_inputs_per_modal: :class:`int`
+            The maximum inputs to add per each modal created. Must be between 1 and 5,
+            both included. Defaults to ``5``.
+
+            .. versionadded:: 1.3
+        titles_step: :class:`int`
+            How much indexes should the modal increase per each modal created.
+
+            .. versionadded:: 1.3
 
 
         Other parameters are the same as :class:`ModalPaginator`.
@@ -515,7 +526,7 @@ class ModalPaginator(discord.ui.View):
                 return default_title
 
         modals: List[PaginatorModal] = []
-        for idx, text_inputs in enumerate(discord.utils.as_chunks(inputs, 5)):
+        for idx, text_inputs in utils.step_enumerate(discord.utils.as_chunks(inputs, max_inputs_per_modal), 0, titles_steps):
             constructed_inputs: List[discord.ui.TextInput[Any]] = [
                 (inp if isinstance(inp, discord.ui.TextInput) else discord.ui.TextInput(label=inp))
                 for inp in text_inputs
