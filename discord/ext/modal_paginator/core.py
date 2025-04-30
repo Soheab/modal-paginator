@@ -499,6 +499,7 @@ class ModalPaginator(discord.ui.View):
             .. versionadded:: 1.3
         titles_step: :class:`int`
             How much indexes should the modal increase per each modal created.
+            Defaults to ``1``.
 
             .. versionadded:: 1.3
 
