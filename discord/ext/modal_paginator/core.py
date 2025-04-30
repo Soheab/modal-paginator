@@ -513,6 +513,12 @@ class ModalPaginator(discord.ui.View):
             The constructed paginator with the modals.
         """
 
+        if titles_steps < 0 or ((titles_steps > len(titles)) if not isinstance(titles, str) else True):
+            raise ValueError('titles_step must be between 0 and the length of the titles, if available')
+
+        if max_inputs_per_modal < 1 or max_inputs_per_modal > 5:
+            raise ValueError('max_inputs_per_modal must be between 1 and 5, both included')
+
         def get_title(idx: int) -> str:
             if titles is discord.utils.MISSING:
                 return default_title
