@@ -34,10 +34,10 @@ classifiers = [
 [project.optional-dependencies]
 dev = ["black", "ruff", "typing_extensions"]
 docs = [
-    "Sphinx==6.1",
-    "furo",
-    "sphinx-autodoc-typehints==1.22",
-    "enum-tools[sphinx]==0.9.*",
+    "Sphinx>=8.2,<9",
+    "furo>=2024.8,<2025",
+    "sphinx-autodoc-typehints>=3.2,<4",
+    "enum-tools[sphinx]>=0.13,<0.14",
 ]
 
 [tool.setuptools]

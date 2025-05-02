@@ -260,7 +260,7 @@ class ModalPaginator(discord.ui.View):
 
         .. describe:: iter(x)
 
-            Returns an iterator of (:class:`PaginatorModal`, List[:class:`TextInput`]) for each modal in the paginator.
+            Returns an iterator of (:class:`PaginatorModal`, List[:class:`discord.ui.TextInput`]) for each modal in the paginator.
 
             .. versionadded:: 1.3
 
@@ -1001,10 +1001,8 @@ class ModalPaginator(discord.ui.View):
 
         if (
             response
-            and isinstance(response, _InteractionCallbackResponse)  # pyright: ignore [reportUnnecessaryIsInstance]
-            and isinstance(
-                response.resource, discord.InteractionMessage
-            )  # pyright: ignore [reportUnnecessaryIsInstance]
+            and isinstance(response, _InteractionCallbackResponse)
+            and isinstance(response.resource, discord.InteractionMessage)
         ):
             self._message = response.resource
 
