@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "modal-paginator"
-copyright = "2023, Soheab_"
+copyright = "2023-2025, Soheab_"
 author = "Soheab_"
-release = "1.3.0a"
+release = "1.3.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

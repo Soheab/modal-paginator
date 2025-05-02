@@ -8,6 +8,39 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v1.3.0
+-------
+
+.. warning::
+
+  Heads up! This version is the last version that supports a lower version of discord.py than `2.5.2`.
+  
+  Please update your discord.py version to `2.5.2` or higher to use this extension.
+
+Features
+~~~~~~~~
+
+- :commit:`b17db0846db299c614f795e71112b578d3e7c2eb` Added a support for ``__iter__`` to :class:`.ModalPaginator`.
+  This means you can now easily iterate over all modals and their text inputs:
+  
+  .. code-block:: python3
+
+    for modal, text_inputs in paginator:
+        ...
+- :commit:`6adc7b2e4ff14ab75379b33e7c2a7d3480b3d42f` Added two new kwargs to :meth:`.ModalPaginator.from_text_inputs`:
+
+  * ``max_inputs_per_modal``
+
+  * ``titles_steps``
+
+  See the kwarg's docstring for more information.
+
+Bug Fixes
+~~~~~~~~~
+
+- :commit:`ba5e8a980461640697429d6c58fff928ab9941ed` Fix a bug where it couldn't edit 
+  it's own message due to a semi-breaking change in discord.py 2.5.0.
+
 v1.2.0
 -------
 
