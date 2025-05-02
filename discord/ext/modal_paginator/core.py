@@ -42,7 +42,7 @@ CustomButtons = Dict[ButtonKeysLiteral, Optional[discord.ui.Button[Any]]]
 
 if utils.IS_DPY2_5:
     from discord import (
-        InteractionCallbackResponse as _InteractionCallbackResponse,  # pyright: ignore[reportAssignmentType]
+        InteractionCallbackResponse as _InteractionCallbackResponse,  # pyright: ignore[reportAttributeAccessIssue, reportUnknownVariableType]
     )
 else:
     ClienT = TypeVar("ClienT")
@@ -514,10 +514,10 @@ class ModalPaginator(discord.ui.View):
         """
 
         if titles_steps < 0 or ((titles_steps > len(titles)) if not isinstance(titles, str) else False):
-            raise ValueError('titles_step must be between 0 and the length of the titles ({len(titles)}), if available')
+            raise ValueError("titles_step must be between 0 and the length of the titles ({len(titles)}), if available")
 
         if max_inputs_per_modal < 1 or max_inputs_per_modal > 5:
-            raise ValueError('max_inputs_per_modal must be between 1 and 5, both included')
+            raise ValueError("max_inputs_per_modal must be between 1 and 5, both included")
 
         def get_title(idx: int) -> str:
             if titles is discord.utils.MISSING:
@@ -532,7 +532,9 @@ class ModalPaginator(discord.ui.View):
                 return default_title
 
         modals: List[PaginatorModal] = []
-        for idx, text_inputs in utils.step_enumerate(discord.utils.as_chunks(inputs, max_inputs_per_modal), 0, titles_steps):
+        for idx, text_inputs in utils.step_enumerate(
+            discord.utils.as_chunks(inputs, max_inputs_per_modal), 0, titles_steps
+        ):
             constructed_inputs: List[discord.ui.TextInput[Any]] = [
                 (inp if isinstance(inp, discord.ui.TextInput) else discord.ui.TextInput(label=inp))
                 for inp in text_inputs
@@ -924,8 +926,8 @@ class ModalPaginator(discord.ui.View):
 
         .. versionchanged:: 1.2
             This now can return ``None`` if ``return_message`` is ``False``.
-        .. versionchanged:: 1.2.1
-            This now returns the message/callback that was sent.
+        .. versionchanged:: 1.3
+            This always returns the message/callback that was sent now.
 
         Parameters
         -----------
@@ -946,7 +948,7 @@ class ModalPaginator(discord.ui.View):
             This is useful if you don't want to fetch the interaction's message after sending the paginator or other reasons.
 
             .. versionadded:: 1.2
-            .. deprecated:: 1.2.1
+            .. deprecated:: 1.3
                 This is deprecated as the method now returns the message/callback that was sent.
         **kwargs: Any
             Additional keyword arguments to the destination's sending method.
@@ -999,8 +1001,10 @@ class ModalPaginator(discord.ui.View):
 
         if (
             response
-            and isinstance(response, _InteractionCallbackResponse)
-            and isinstance(response.resource, discord.InteractionMessage)
+            and isinstance(response, _InteractionCallbackResponse)  # pyright: ignore [reportUnnecessaryIsInstance]
+            and isinstance(
+                response.resource, discord.InteractionMessage
+            )  # pyright: ignore [reportUnnecessaryIsInstance]
         ):
             self._message = response.resource
 
